@@ -75,8 +75,8 @@ jobs:
           if missing:
               raise SystemExit("Missing features: " + ", ".join(missing))
           report = ["Bloom Finance automated validation report", "JavaScript syntax: passed", "Required feature markers: passed"]
-          Path("validation-report.txt").write_text("\\n".join(report) + "\\n", encoding="utf-8")
-          print("\\n".join(report))
+          Path("validation-report.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
+          print("\n".join(report))
           PY
       - name: Upload validation report
         uses: actions/upload-artifact@v4
