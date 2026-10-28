@@ -234,7 +234,66 @@ const AUTH_KEY='bloom_finance_local_demo_users_v1', SESSION_KEY='bloom_finance_l
 function readUsers(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}')}catch(e){return {}}}
 function switchAuth(mode){const signup=mode==='signup';$('auth-heading').textContent=signup?'Create your Bloom profile':'Welcome back';['auth-name-wrap','auth-phone-wrap','auth-dob-wrap','auth-country-wrap'].forEach(id=>$(id).classList.toggle('auth-hidden',!signup));$('auth-name').required=signup;$('auth-password').autocomplete=signup?'new-password':'current-password';$('auth-login-tab').classList.toggle('active',!signup);$('auth-signup-tab').classList.toggle('active',signup);$('auth-submit').textContent=signup?'Create account':'Sign in';$('auth-message').classList.add('auth-hidden');$('auth-form').dataset.mode=mode}
 async function passwordDigest(salt,password){const bytes=new TextEncoder().encode(salt+'|'+password);if(!window.crypto||!crypto.subtle)throw new Error('Password hashing is not available in this browser context. Open the hosted HTTPS version or use a modern browser.');const hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
-async function submitAuth(e){e.preventDefault();const mode=$('auth-form').dataset.mode||'login',email=$('auth-email').value.trim().toLowerCase(),password=$('auth-password').value,name=$('auth-name').value.trim(),phone=$('auth-phone').value.trim(),dob=$('auth-dob').value,country=$('auth-country').value.trim();const msg=$('auth-message');try{const users=readUsers();if(mode==='signup'){if(!name){throw new Error('Please enter your name.')}if(users[email])throw new Error('An account for this email already exists. Please sign in.');const salt=uid()+uid();users[email]={email,name,phone,dob,country,salt,digest:await passwordDigest(salt,password)};localStorage.setItem(AUTH_KEY,JSON.stringify(users));data.profile.firstName=name;data.profile.phone=phone;data.profile.dob=dob;data.profile.country=country;data.profile.email=email;localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(SESSION_KEY,email);showWorkspace();toast('Local demo profile created')}else{const u=users[email];if(!u)throw new Error('No local profile found for this email. Select Sign up first on this browser.');if(await passwordDigest(u.salt,password)!==u.digest)throw new Error('Password does not match this local demo profile.');localStorage.setItem(SESSION_KEY,email);data.profile.firstName=u.name||data.profile.firstName;data.profile.email=email;localStorage.setItem(KEY,JSON.stringify(data));showWorkspace();toast('Signed in to local demo')} }catch(err){msg.textContent=err.message;msg.classList.remove('auth-hidden')}}
+async function submitAuth(e){
+  e.preventDefault();
+  const mode=$('auth-form').dataset.mode||'login';
+  const email=$('auth-email').value.trim().toLowerCase();
+  const password=$('auth-password').value;
+  const name=$('auth-name').value.trim();
+  const phone=$('auth-phone').value.trim();
+  const dob=$('auth-dob').value;
+  const country=$('auth-country').value.trim();
+  const msg=$('auth-message');
+  try{
+    const client=getSupabaseClient();
+    if(client){
+      if(mode==='signup'){
+        if(!name)throw new Error('Please enter your name.');
+        const {data:authData,error}=await client.auth.signUp({
+          email,password,
+          options:{
+            data:{full_name:name,phone,dob,country},
+            emailRedirectTo:window.location.origin+window.location.pathname
+          }
+        });
+        if(error)throw error;
+        if(authData.session){
+          data.profile.firstName=name;data.profile.phone=phone;data.profile.dob=dob;data.profile.country=country;data.profile.email=email;
+          showWorkspace();toast('Account created');
+        }else{
+          msg.textContent='Account created. Check your email for the verification link, then return here to sign in.';
+          msg.classList.remove('auth-hidden');
+        }
+      }else{
+        const {data:authData,error}=await client.auth.signInWithPassword({email,password});
+        if(error)throw error;
+        data.profile.email=authData.user.email||email;
+        const meta=authData.user.user_metadata||{};
+        data.profile.firstName=meta.full_name||meta.name||data.profile.firstName;
+        showWorkspace();toast('Signed in');
+      }
+      return;
+    }
+    // Backward-compatible local demo mode until Supabase is configured.
+    const users=readUsers();
+    if(mode==='signup'){
+      if(!name)throw new Error('Please enter your name.');
+      if(users[email])throw new Error('An account for this email already exists. Please sign in.');
+      const salt=uid()+uid();
+      users[email]={email,name,phone,dob,country,salt,digest:await passwordDigest(salt,password)};
+      localStorage.setItem(AUTH_KEY,JSON.stringify(users));
+      data.profile.firstName=name;data.profile.phone=phone;data.profile.dob=dob;data.profile.country=country;data.profile.email=email;
+      localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(SESSION_KEY,email);
+      showWorkspace();toast('Local demo profile created');
+    }else{
+      const u=users[email];
+      if(!u)throw new Error('No local profile found for this email. Select Sign up first on this browser.');
+      if(await passwordDigest(u.salt,password)!==u.digest)throw new Error('Password does not match this local demo profile.');
+      localStorage.setItem(SESSION_KEY,email);data.profile.firstName=u.name||data.profile.firstName;data.profile.email=email;
+      localStorage.setItem(KEY,JSON.stringify(data));showWorkspace();toast('Signed in to local demo');
+    }
+  }catch(err){msg.textContent=err.message||'Authentication failed.';msg.classList.remove('auth-hidden')}
+}
 let supabaseClient=null;
 function getSupabaseClient(){
   const cfg=window.BLOOM_SUPABASE_CONFIG||{};
