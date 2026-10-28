@@ -132,7 +132,15 @@ const DEFAULT_CATS=['Food','Housing','Transport','Bills','Healthcare','Shopping'
 const TITLES={overview:['Overview','Your money, clearly in view.'],analytics:['Analytics','Simple insights and practical money advice.'],transactions:['Transactions','Track income, expenses and transfers.'],accounts:['Accounts','Record account balances.'],networth:['Assets & liabilities','Understand what you own and owe.'],goals:['Goals','Plan savings and monitor progress.'],settings:['Backup & settings','Manage your profile and local data.'],family:['Family group','Organize family members and consent preferences.'],documents:['Documents & import','Import transactions and keep a document register.']};
 function fresh(){return {profile:{firstName:'',lastName:'',currency:'LKR',phone:'',dob:'',country:'',fxRates:{}},transactions:[],accounts:[],assets:[],goals:[],categories:DEFAULT_CATS.slice(),family:{groupName:'Our family finances',members:[]},documents:[]};}
 let data=fresh(),view='Myself';
-try{const raw=localStorage.getItem(KEY);if(raw){const parsed=JSON.parse(raw);data=Object.assign(fresh(),parsed);for(const k of ['transactions','accounts','assets','goals','categories','documents'])if(!Array.isArray(data[k]))data[k]=fresh()[k];if(!data.family||typeof data.family!=='object')data.family=fresh().family;if(!Array.isArray(data.family.members))data.family.members=[];data.profile=Object.assign(fresh().profile,data.profile||{});}}catch(e){console.warn('Saved data could not be read; starting with a fresh workspace.',e)}
+function normalizeData(parsed){
+  const normalized=Object.assign(fresh(),parsed||{});
+  for(const k of ['transactions','accounts','assets','goals','categories','documents'])if(!Array.isArray(normalized[k]))normalized[k]=fresh()[k];
+  if(!normalized.family||typeof normalized.family!=='object')normalized.family=fresh().family;
+  if(!Array.isArray(normalized.family.members))normalized.family.members=[];
+  normalized.profile=Object.assign(fresh().profile,normalized.profile||{});
+  return normalized;
+}
+try{const raw=localStorage.getItem(KEY);if(raw)data=normalizeData(JSON.parse(raw));}catch(e){console.warn('Saved data could not be read; starting with a fresh workspace.',e)}
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>new Intl.NumberFormat('en-LK',{style:'currency',currency:(data.profile.currency||'LKR'),maximumFractionDigits:0}).format(Number(n)||0);
@@ -142,7 +150,11 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const today=()=>new Date().toISOString().slice(0,10);
 const month=()=>today().slice(0,7);
 function toast(msg){$('toast').textContent=msg;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),2200)}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(data));render()}catch(e){alert('Browser storage is full or unavailable. Export a backup and remove large records.');}}
+function dataStorageKey(){return currentUserId?KEY+'_user_'+currentUserId:KEY}
+function save(){
+  try{localStorage.setItem(dataStorageKey(),JSON.stringify(data));render();persistRemoteData();}
+  catch(e){alert('Browser storage is full or unavailable. Export a backup and remove large records.');}
+}
 function go(page){if(!TITLES[page])return;document.querySelectorAll('.views section').forEach(s=>s.classList.toggle('active',s.id==='page-'+page));document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('page-title').textContent=TITLES[page][0];$('page-subtitle').textContent=TITLES[page][1];window.scrollTo(0,0);if(page==='analytics')renderAnalytics()}
 $('nav').addEventListener('click',e=>{const b=e.target.closest('[data-page]');if(b)go(b.dataset.page)});
 function setView(v){view=v;$('view-note').textContent=v==='Family'?'Family group view — includes records marked Family and your personal entries.':'Individual view — records marked Myself.';render()}
@@ -259,6 +271,7 @@ async function submitAuth(e){
         if(error)throw error;
         if(authData.session){
           data.profile.firstName=name;data.profile.phone=phone;data.profile.dob=dob;data.profile.country=country;data.profile.email=email;
+          await loadUserFinance(authData.user);
           showWorkspace();toast('Account created');
         }else{
           msg.textContent='Account created. Check your email for the verification link, then return here to sign in.';
@@ -270,6 +283,7 @@ async function submitAuth(e){
         data.profile.email=authData.user.email||email;
         const meta=authData.user.user_metadata||{};
         data.profile.firstName=meta.full_name||meta.name||data.profile.firstName;
+        await loadUserFinance(authData.user);
         showWorkspace();toast('Signed in');
       }
       return;
@@ -295,12 +309,51 @@ async function submitAuth(e){
   }catch(err){msg.textContent=err.message||'Authentication failed.';msg.classList.remove('auth-hidden')}
 }
 let supabaseClient=null;
+let currentUserId=null;
+let remoteSaveQueue=Promise.resolve();
 function getSupabaseClient(){
   const cfg=window.BLOOM_SUPABASE_CONFIG||{};
   if(!cfg.url||!cfg.anonKey||String(cfg.url).includes('YOUR_')||String(cfg.anonKey).includes('YOUR_'))return null;
   if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Supabase library did not load. Refresh the page and try again.');
   if(!supabaseClient)supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey);
   return supabaseClient;
+}
+async function loadUserFinance(user){
+  const client=getSupabaseClient();
+  if(!client||!user||!user.id)throw new Error('A valid Supabase session is required to load finance data.');
+  currentUserId=user.id;
+  const {data:row,error}=await client.from('user_finance_data').select('data').eq('user_id',user.id).maybeSingle();
+  if(error)throw new Error('Signed in, but could not load your private finance data: '+error.message);
+  const userKey=KEY+'_user_'+user.id;
+  if(row&&row.data&&typeof row.data==='object'){
+    data=normalizeData(row.data);
+  }else{
+    // Never import the old shared browser cache automatically: it may belong to another account.
+    try{const cached=localStorage.getItem(userKey);data=cached?normalizeData(JSON.parse(cached)):fresh();}
+    catch(e){data=fresh();}
+  }
+  data.profile.email=user.email||data.profile.email||'';
+  const meta=user.user_metadata||{};
+  if(!data.profile.firstName)data.profile.firstName=meta.full_name||meta.name||'';
+  try{localStorage.setItem(userKey,JSON.stringify(data));}catch(e){console.warn('Could not cache this user\'s finance data locally.',e)}
+  return data;
+}
+function persistRemoteData(){
+  if(!currentUserId||!supabaseClient)return;
+  const userId=currentUserId;
+  let snapshot;
+  try{snapshot=JSON.parse(JSON.stringify(data));}catch(e){console.warn('Finance data could not be prepared for cloud sync.',e);return;}
+  remoteSaveQueue=remoteSaveQueue.then(async()=>{
+    if(currentUserId!==userId)return;
+    const {error}=await supabaseClient.from('user_finance_data').upsert(
+      {user_id:userId,data:snapshot,updated_at:new Date().toISOString()},
+      {onConflict:'user_id'}
+    );
+    if(error){
+      console.error('Bloom Finance cloud save failed:',error);
+      toast('Saved on this device; cloud sync failed. Check connection and database policies.');
+    }
+  }).catch(error=>console.error('Bloom Finance cloud save failed:',error));
 }
 async function socialLogin(provider){
   const msg=$('auth-message');
@@ -316,7 +369,7 @@ async function socialLogin(provider){
 function showWorkspace(){ $('auth-screen').classList.add('auth-hidden');render(); }
 async function signOut(){
   try{if(supabaseClient)await supabaseClient.auth.signOut()}catch(e){console.warn('Supabase sign-out issue',e)}
-  localStorage.removeItem(SESSION_KEY);$('auth-screen').classList.remove('auth-hidden');$('auth-email').value='';$('auth-password').value='';switchAuth('login')
+  currentUserId=null;data=fresh();localStorage.removeItem(SESSION_KEY);$('auth-screen').classList.remove('auth-hidden');$('auth-email').value='';$('auth-password').value='';switchAuth('login')
 }
 async function initAuth(){
   try{
@@ -326,19 +379,45 @@ async function initAuth(){
       if(error)throw error;
       if(sessionData.session){
         const user=sessionData.session.user;
-        data.profile.email=user.email||'';
-        const meta=user.user_metadata||{};
-        if(!data.profile.firstName)data.profile.firstName=meta.full_name||meta.name||'';
+        try{await loadUserFinance(user);}
+        catch(loadError){
+          console.error('Private finance data could not be loaded:',loadError);
+          $('auth-screen').classList.remove('auth-hidden');
+          $('auth-message').textContent=loadError.message||'Could not load your private finance data.';
+          $('auth-message').classList.remove('auth-hidden');
+          return;
+        }
         $('profile-name').textContent=data.profile.firstName||user.email||'My Bloom';
         $('auth-screen').classList.add('auth-hidden');
         render();
-        client.auth.onAuthStateChange((_event,session)=>{
-          if(session){data.profile.email=session.user.email||'';showWorkspace()}
-          else{$('auth-screen').classList.remove('auth-hidden');switchAuth('login')}
+        client.auth.onAuthStateChange((event,session)=>{
+          // Defer database work until after Supabase finishes its auth-state callback.
+          queueMicrotask(async()=>{
+            if(session){
+              if(currentUserId!==session.user.id){
+                try{await loadUserFinance(session.user);}
+                catch(loadError){
+                  console.error('Private finance data could not be loaded:',loadError);
+                  $('auth-screen').classList.remove('auth-hidden');
+                  $('auth-message').textContent=loadError.message||'Could not load your private finance data.';
+                  $('auth-message').classList.remove('auth-hidden');
+                  return;
+                }
+              }
+              data.profile.email=session.user.email||'';
+              $('profile-name').textContent=data.profile.firstName||session.user.email||'My Bloom';
+              showWorkspace();
+            }else{
+              currentUserId=null;
+              data=fresh();
+              $('auth-screen').classList.remove('auth-hidden');
+              switchAuth('login');
+            }
+          });
         });
         return;
       }
-      // When Supabase is configured, never bypass it with a leftover local demo session.
+      currentUserId=null;
       $('auth-screen').classList.remove('auth-hidden');switchAuth('login');return;
     }
   }catch(err){console.warn('Supabase authentication initialization failed',err)}
