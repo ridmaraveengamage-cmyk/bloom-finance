@@ -30,8 +30,8 @@
       <label>Password<input id="auth-password" name="password" type="password" minlength="6" autocomplete="current-password" required placeholder="At least 6 characters"></label>
       <button id="auth-submit">Sign in</button>
     </form>
-    <div class="actions" style="margin-top:10px"><button class="secondary" type="button" onclick="socialDemo('Google')">Continue with Google</button><button class="secondary" type="button" onclick="socialDemo('Apple')">Continue with Apple</button></div>
-    <p class="small">Social buttons are demonstration placeholders; real OAuth sign-in is not connected.</p>
+    <div class="actions" style="margin-top:10px"><button class="secondary" type="button" onclick="socialLogin('google')">Continue with Google</button><button class="secondary" type="button" onclick="socialLogin('apple')">Continue with Apple</button></div>
+    <p class="small">Google and Apple sign-in use Supabase OAuth when configured. Provider setup is required before these buttons can complete sign-in.</p>
     <div id="auth-message" class="auth-message auth-hidden" style="margin-top:12px"></div>
     <div class="auth-warning">Prototype notice: this is local demo authentication, not a secure production login. Your profile and finance records are stored in this browser only. Do not use a password you use elsewhere or enter sensitive financial credentials.</div>
   </div>
@@ -123,6 +123,8 @@
   <p class="footnote">Bloom Finance · Use non-sensitive test data only while this is a static prototype.</p>
 </main></div>
 <div id="modal-root" class="modalroot"></div><div id="toast" class="toast hidden"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
 <script>
 'use strict';
 const KEY='bloom_finance_working_v1';
@@ -233,10 +235,56 @@ function readUsers(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||'{}')
 function switchAuth(mode){const signup=mode==='signup';$('auth-heading').textContent=signup?'Create your Bloom profile':'Welcome back';['auth-name-wrap','auth-phone-wrap','auth-dob-wrap','auth-country-wrap'].forEach(id=>$(id).classList.toggle('auth-hidden',!signup));$('auth-name').required=signup;$('auth-password').autocomplete=signup?'new-password':'current-password';$('auth-login-tab').classList.toggle('active',!signup);$('auth-signup-tab').classList.toggle('active',signup);$('auth-submit').textContent=signup?'Create account':'Sign in';$('auth-message').classList.add('auth-hidden');$('auth-form').dataset.mode=mode}
 async function passwordDigest(salt,password){const bytes=new TextEncoder().encode(salt+'|'+password);if(!window.crypto||!crypto.subtle)throw new Error('Password hashing is not available in this browser context. Open the hosted HTTPS version or use a modern browser.');const hash=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
 async function submitAuth(e){e.preventDefault();const mode=$('auth-form').dataset.mode||'login',email=$('auth-email').value.trim().toLowerCase(),password=$('auth-password').value,name=$('auth-name').value.trim(),phone=$('auth-phone').value.trim(),dob=$('auth-dob').value,country=$('auth-country').value.trim();const msg=$('auth-message');try{const users=readUsers();if(mode==='signup'){if(!name){throw new Error('Please enter your name.')}if(users[email])throw new Error('An account for this email already exists. Please sign in.');const salt=uid()+uid();users[email]={email,name,phone,dob,country,salt,digest:await passwordDigest(salt,password)};localStorage.setItem(AUTH_KEY,JSON.stringify(users));data.profile.firstName=name;data.profile.phone=phone;data.profile.dob=dob;data.profile.country=country;data.profile.email=email;localStorage.setItem(KEY,JSON.stringify(data));localStorage.setItem(SESSION_KEY,email);showWorkspace();toast('Local demo profile created')}else{const u=users[email];if(!u)throw new Error('No local profile found for this email. Select Sign up first on this browser.');if(await passwordDigest(u.salt,password)!==u.digest)throw new Error('Password does not match this local demo profile.');localStorage.setItem(SESSION_KEY,email);data.profile.firstName=u.name||data.profile.firstName;data.profile.email=email;localStorage.setItem(KEY,JSON.stringify(data));showWorkspace();toast('Signed in to local demo')} }catch(err){msg.textContent=err.message;msg.classList.remove('auth-hidden')}}
-function socialDemo(provider){alert(provider+' sign-in is not connected in this prototype. Use email sign-up for now. Real social login requires OAuth configuration and a secure backend.')}
+let supabaseClient=null;
+function getSupabaseClient(){
+  const cfg=window.BLOOM_SUPABASE_CONFIG||{};
+  if(!cfg.url||!cfg.anonKey||String(cfg.url).includes('YOUR_')||String(cfg.anonKey).includes('YOUR_'))return null;
+  if(!window.supabase||typeof window.supabase.createClient!=='function')throw new Error('Supabase library did not load. Refresh the page and try again.');
+  if(!supabaseClient)supabaseClient=window.supabase.createClient(cfg.url,cfg.anonKey);
+  return supabaseClient;
+}
+async function socialLogin(provider){
+  const msg=$('auth-message');
+  try{
+    const client=getSupabaseClient();
+    if(!client)throw new Error('Google/Apple sign-in is not configured yet. First create a Supabase project, then add its Project URL and publishable key to supabase-config.js and enable the provider in Supabase Auth.');
+    msg.textContent='Redirecting to '+(provider==='google'?'Google':'Apple')+'…';msg.classList.remove('auth-hidden');
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await client.auth.signInWithOAuth({provider,options:{redirectTo}});
+    if(error)throw error;
+  }catch(err){msg.textContent=err.message||'Could not start social sign-in.';msg.classList.remove('auth-hidden')}
+}
 function showWorkspace(){ $('auth-screen').classList.add('auth-hidden');render(); }
-function signOut(){localStorage.removeItem(SESSION_KEY);$('auth-screen').classList.remove('auth-hidden');$('auth-email').value='';$('auth-password').value='';switchAuth('login')}
-function initAuth(){const email=localStorage.getItem(SESSION_KEY);if(email){const users=readUsers();if(users[email]){$('auth-screen').classList.add('auth-hidden');return}}$('auth-screen').classList.remove('auth-hidden');switchAuth('login')}
+async function signOut(){
+  try{if(supabaseClient)await supabaseClient.auth.signOut()}catch(e){console.warn('Supabase sign-out issue',e)}
+  localStorage.removeItem(SESSION_KEY);$('auth-screen').classList.remove('auth-hidden');$('auth-email').value='';$('auth-password').value='';switchAuth('login')
+}
+async function initAuth(){
+  try{
+    const client=getSupabaseClient();
+    if(client){
+      const {data:sessionData,error}=await client.auth.getSession();
+      if(error)throw error;
+      if(sessionData.session){
+        const user=sessionData.session.user;
+        data.profile.email=user.email||'';
+        const meta=user.user_metadata||{};
+        if(!data.profile.firstName)data.profile.firstName=meta.full_name||meta.name||'';
+        $('profile-name').textContent=data.profile.firstName||user.email||'My Bloom';
+        $('auth-screen').classList.add('auth-hidden');
+        render();
+        client.auth.onAuthStateChange((_event,session)=>{
+          if(session){data.profile.email=session.user.email||'';showWorkspace()}
+          else if(!_('auth-screen')){}
+        });
+        return;
+      }
+    }
+  }catch(err){console.warn('Supabase authentication initialization failed',err)}
+  const email=localStorage.getItem(SESSION_KEY);
+  if(email){const users=readUsers();if(users[email]){$('auth-screen').classList.add('auth-hidden');return}}
+  $('auth-screen').classList.remove('auth-hidden');switchAuth('login')
+}
 
 initAuth();render();
 </script>
