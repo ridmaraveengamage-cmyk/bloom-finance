@@ -522,6 +522,115 @@ async function initAuth(){
   $('auth-screen').classList.remove('auth-hidden');switchAuth('login')
 }
 
+
+/* Bloom Finance card and transaction editing enhancements */
+function fresh(){return {profile:{firstName:'',lastName:'',currency:'LKR',phone:'',dob:'',country:'',fxRates:{}},transactions:[],accounts:[],cards:[],assets:[],goals:[],categories:DEFAULT_CATS.slice(),incomeCategories:DEFAULT_INCOME_CATS.slice(),transferCategories:DEFAULT_TRANSFER_CATS.slice(),family:{groupName:'Our family finances',members:[]},documents:[]};}
+function normalizeData(parsed){
+ const normalized=Object.assign(fresh(),parsed||{});
+ for(const k of ['transactions','accounts','cards','assets','goals','categories','incomeCategories','transferCategories','documents'])if(!Array.isArray(normalized[k]))normalized[k]=fresh()[k];
+ if(!normalized.family||typeof normalized.family!=='object')normalized.family=fresh().family;
+ if(!Array.isArray(normalized.family.members))normalized.family.members=[];
+ normalized.profile=Object.assign(fresh().profile,normalized.profile||{});
+ return normalized;
+}
+function accountCurrent(a){
+ let n=Number(a.balance)||0;
+ for(const t of data.transactions){
+  const amt=Number(t.amount)||0;
+  if(t.account===a.name){
+   if(t.type==='Income')n+=amt;
+   else if(t.type==='Expense'&&['Bank account','Debit card','Online payment','Cheque'].includes(t.paymentMethod))n-=amt;
+   else if(t.type==='Transfer')n-=amt;
+   else if(t.type==='Card repayment')n-=amt;
+  }
+  if(t.type==='Transfer'&&t.toAccount===a.name)n+=amt;
+ }
+ return n;
+}
+function cardCurrent(c){
+ let n=Number(c.outstanding)||0;
+ for(const t of data.transactions){if(t.cardId!==c.id)continue;const amt=Number(t.amount)||0;if(t.type==='Expense')n+=amt;else if(t.type==='Card repayment')n-=amt;}
+ return n;
+}
+function totals(){
+ const tx=monthlyTransactions(),income=tx.filter(t=>t.type==='Income').reduce((s,t)=>s+Number(t.amount),0),expenses=tx.filter(t=>t.type==='Expense').reduce((s,t)=>s+Number(t.amount),0);
+ const bank=data.accounts.filter(a=>view==='Family'||a.owner==='Myself').reduce((s,a)=>s+accountBase({...a,balance:accountCurrent(a)}),0);
+ const assets=data.assets.filter(a=>a.kind==='Asset'&&(view==='Family'||a.owner==='Myself')).reduce((s,a)=>s+Number(a.value),0);
+ const debts=data.assets.filter(a=>a.kind==='Liability'&&(view==='Family'||a.owner==='Myself')).reduce((s,a)=>s+Number(a.value),0);
+ const cardDebt=data.cards.filter(c=>view==='Family'||c.owner==='Myself').reduce((s,c)=>s+Math.max(0,cardCurrent(c)),0);
+ return {tx,income,expenses,netFlow:income-expenses,bank,assets,debts:debts+cardDebt,cardDebt,netWorth:bank+assets-debts-cardDebt};
+}
+function openTransactionForm(editId){
+ const existing=editId?data.transactions.find(t=>t.id===editId):null;
+ const t=existing||{type:'Expense',date:today(),description:'',amount:'',category:'',owner:'Myself',paymentMethod:'Bank account',account:'',cardId:'',toAccount:'',paymentDetails:''};
+ const accountOptions=data.accounts.map(a=>'<option value="'+esc(a.name)+'" '+(t.account===a.name?'selected':'')+'>'+esc(a.name)+' ('+esc(a.kind||'Account')+')</option>').join('');
+ const destOptions=data.accounts.map(a=>'<option value="'+esc(a.name)+'" '+(t.toAccount===a.name?'selected':'')+'>'+esc(a.name)+'</option>').join('');
+ const cardOptions=data.cards.map(c=>'<option value="'+esc(c.id)+'" '+(t.cardId===c.id?'selected':'')+'>'+esc(c.nickname)+' · '+esc(c.issuer)+'</option>').join('');
+ const typeOpts=['Expense','Income','Transfer','Card repayment'].map(x=>'<option '+(t.type===x?'selected':'')+'>'+x+'</option>').join('');
+ const methodOpts=['Bank account','Debit card','Credit card','Cash in hand','Cheque','Online payment','Mobile wallet','Other'].map(x=>'<option '+(t.paymentMethod===x?'selected':'')+'>'+x+'</option>').join('');
+ openModal(existing?'Edit transaction':'Add transaction',`<form class="formgrid" onsubmit="saveTransaction(event)">
+ <input type="hidden" name="id" value="${esc(t.id||'')}">
+ <label>Type<select name="type" id="transaction-type" onchange="updateTransactionCategoryOptions();toggleTransactionPaymentDetails()">${typeOpts}</select></label>
+ <label>Date<input type="date" name="date" value="${esc(t.date||today())}" required></label>
+ <label class="full">Description<input name="description" required maxlength="100" value="${esc(t.description||'')}"></label>
+ <label>Amount<input name="amount" type="number" min=".01" step=".01" required value="${esc(t.amount)}"></label>
+ <label>Category / subcategory<select name="category" id="transaction-category">${categoryOptions(t.type==='Card repayment'?'Transfer':t.type||'Expense')}</select></label>
+ <label>Owner<select name="owner"><option ${t.owner==='Myself'?'selected':''}>Myself</option><option ${t.owner==='Family'?'selected':''}>Family</option></select></label>
+ <label>Payment method<select name="paymentMethod" id="transaction-payment-method" onchange="toggleTransactionPaymentDetails()">${methodOpts}</select></label>
+ <label id="transaction-account-wrap">Bank account<select name="account"><option value="">Choose account</option>${accountOptions}</select></label>
+ <label id="transaction-card-wrap">Credit card<select name="cardId"><option value="">Choose credit card</option>${cardOptions}</select></label>
+ <label id="transaction-destination-wrap">Transfer destination<select name="toAccount"><option value="">Choose destination</option>${destOptions}</select></label>
+ <label class="full">Payment details<input name="paymentDetails" maxlength="120" value="${esc(t.paymentDetails||'')}" placeholder="Optional short note"></label>
+ <div class="full small">Use nicknames only. Never enter full account numbers, PINs, CVVs or OTPs.</div><div class="full"><button>${existing?'Save changes':'Save transaction'}</button></div></form>`);
+ toggleTransactionPaymentDetails();
+}
+function toggleTransactionPaymentDetails(){
+ const method=$('transaction-payment-method')?.value||'Bank account',type=$('transaction-type')?.value||'Expense';
+ const aw=$('transaction-account-wrap'),cw=$('transaction-card-wrap'),dw=$('transaction-destination-wrap');
+ if(aw)aw.style.display=(method==='Bank account'||method==='Debit card'||method==='Online payment'||method==='Cheque'||type==='Card repayment'||type==='Transfer'||type==='Income')?'block':'none';
+ if(cw)cw.style.display=(method==='Credit card'||type==='Card repayment')?'block':'none';
+ if(dw)dw.style.display=type==='Transfer'?'block':'none';
+}
+function updateTransactionCategoryOptions(){const type=$('transaction-type')?.value||'Expense';const select=$('transaction-category');if(select)select.innerHTML=categoryOptions(type==='Card repayment'?'Transfer':type);}
+function saveTransaction(e){
+ e.preventDefault();const o=Object.fromEntries(new FormData(e.target));o.amount=Number(o.amount);
+ if(!Number.isFinite(o.amount)||o.amount<=0)return alert('Enter a valid amount.');
+ if(o.type==='Card repayment'&&!o.cardId)return alert('Choose the credit card being repaid.');
+ if(o.type==='Expense'&&o.paymentMethod==='Credit card'&&!o.cardId)return alert('Choose a credit card.');
+ if(o.type==='Expense'&&['Bank account','Debit card','Online payment','Cheque'].includes(o.paymentMethod)&&!o.account)return alert('Choose the bank account used.');
+ if(o.type==='Transfer'&&(!o.account||!o.toAccount||o.account===o.toAccount))return alert('Choose different source and destination accounts.');
+ if(o.type==='Income'&&!o.account&&o.paymentMethod==='Bank account')return alert('Choose the bank account receiving the income.');
+ if(o.category==='__custom__'){const custom=String(o.customCategory||'').trim();if(!custom)return alert('Enter a custom category name.');o.category=custom;}
+ if(o.type==='Expense'&&o.paymentMethod==='Credit card'){o.account='';}
+ if(o.type==='Card repayment'){o.paymentMethod='Bank account';}
+ if(!['Credit card','Debit card','Online payment','Bank account','Cheque'].includes(o.paymentMethod)&&o.type!=='Transfer'&&o.type!=='Card repayment'&&o.type!=='Income')o.account='';
+ const oldId=o.id; if(oldId){const idx=data.transactions.findIndex(x=>x.id===oldId);if(idx>=0)data.transactions[idx]={...data.transactions[idx],...o,id:oldId};else{o.id=uid();data.transactions.push(o);}}else{o.id=uid();data.transactions.push(o);}
+ save();closeModal();toast(oldId?'Transaction updated':'Transaction saved');
+}
+function renderTransactions(){
+ const rows=scopedTransactions().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+ $('transactions-list').innerHTML=rows.length?'<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Owner</th><th>Category</th><th>Payment method</th><th>Account / card</th><th>Amount</th><th>Actions</th></tr></thead><tbody>'+rows.map(t=>'<tr><td>'+esc(t.date)+'</td><td>'+esc(t.type)+'</td><td>'+esc(t.description)+'</td><td>'+esc(t.owner)+'</td><td>'+esc(t.category)+'</td><td>'+esc(t.paymentMethod||'')+'</td><td>'+esc(t.account||data.cards.find(c=>c.id===t.cardId)?.nickname||t.toAccount||'—')+'</td><td>'+money(t.amount)+'</td><td><button class="secondary" onclick="openTransactionForm(\''+t.id+'\')">Edit</button> <button class="danger" onclick="removeItem(\'transactions\',\''+t.id+'\')">Delete</button></td></tr>').join('')+'</tbody></table></div>':'<div class="empty">No transactions recorded.</div>';
+}
+function openAccountForm(){openModal('Add bank account or cash',`<form class="formgrid" onsubmit="saveAccount(event)"><label>Account nickname<input name="name" required maxlength="80"></label><label>Owner<select name="owner"><option>Myself</option><option>Family</option></select></label><label>Type<select name="kind"><option>Bank account</option><option>Cash</option><option>E-wallet</option><option>Investment</option><option>Other</option></select></label><label>Currency<select name="currency"><option>LKR</option><option>USD</option><option>EUR</option><option>GBP</option></select></label><label class="full">Starting balance (before recorded transactions)<input name="balance" type="number" step=".01" required value="0"></label><div class="full"><button>Save account</button></div></form>`)}
+function saveAccount(e){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));o.id=uid();o.balance=Number(o.balance);if(data.accounts.some(a=>a.name.toLowerCase()===o.name.toLowerCase()))return alert('Use a unique account nickname.');data.accounts.push(o);save();closeModal();toast('Account saved')}
+function openCardForm(){openModal('Add credit card',`<form class="formgrid" onsubmit="saveCard(event)"><label>Card nickname<input name="nickname" required maxlength="80" placeholder="e.g. Main Visa"></label><label>Issuing bank<input name="issuer" required maxlength="80" placeholder="e.g. Commercial Bank"></label><label>Owner<select name="owner"><option>Myself</option><option>Family</option></select></label><label>Credit limit<input name="limit" type="number" min="0" step=".01" required value="0"></label><label class="full">Starting outstanding balance<input name="outstanding" type="number" min="0" step=".01" required value="0"></label><div class="full small">Enter the balance already owed before you start recording transactions.</div><div class="full"><button>Save credit card</button></div></form>`)}
+function saveCard(e){e.preventDefault();const o=Object.fromEntries(new FormData(e.target));if(data.cards.some(c=>c.nickname.toLowerCase()===o.nickname.trim().toLowerCase()))return alert('Use a unique card nickname.');o.id=uid();o.nickname=o.nickname.trim();o.issuer=o.issuer.trim();o.limit=Number(o.limit)||0;o.outstanding=Number(o.outstanding)||0;data.cards.push(o);save();closeModal();toast('Credit card saved')}
+function renderAccounts(){
+ const accounts=data.accounts.filter(a=>view==='Family'||a.owner==='Myself');
+ const cards=data.cards.filter(c=>view==='Family'||c.owner==='Myself');
+ $('accounts-list').innerHTML=accounts.map(a=>'<div class="card"><div class="label">'+esc(a.kind||'Account')+'</div><h3>'+esc(a.name)+'</h3><p class="small">'+esc(a.owner)+' · '+esc(a.currency||data.profile.currency)+' · starting '+money(a.balance)+'</p><div class="metric">'+money(accountCurrent(a))+'</div><div class="small">Calculated balance</div></div>').join('')+cards.map(c=>'<div class="card"><div class="label">Credit card · '+esc(c.issuer)+'</div><h3>'+esc(c.nickname)+'</h3><p class="small">'+esc(c.owner)+' · Limit '+money(c.limit)+'</p><div class="metric">'+money(cardCurrent(c))+'</div><div class="small">Outstanding balance</div><div class="small">Available credit: '+money(Math.max(0,c.limit-cardCurrent(c)))+'</div><button class="danger" onclick="removeItem(\'cards\',\''+c.id+'\')">Delete card</button></div>').join('')||'<div class="empty">No accounts or cards yet. Add an account or credit card.</div>';
+ const section=$('page-accounts')?.querySelector('.section');
+ if(section){section.innerHTML='<h2>Accounts and Cards</h2><div class="actions"><button onclick="openAccountForm()">＋ Add account</button><button class="secondary" onclick="openCardForm()">＋ Add credit card</button></div>';}
+}
+function renderNetWorth(){
+ const assets=data.assets.filter(a=>a.kind==='Asset'&&(view==='Family'||a.owner==='Myself')),liabs=data.assets.filter(a=>a.kind==='Liability'&&(view==='Family'||a.owner==='Myself'));
+ const at=assets.reduce((s,a)=>s+Number(a.value),0),lt=liabs.reduce((s,a)=>s+Number(a.value),0);
+ const bank=data.accounts.filter(a=>view==='Family'||a.owner==='Myself').reduce((s,a)=>s+accountBase({...a,balance:accountCurrent(a)}),0);
+ const cards=data.cards.filter(c=>view==='Family'||c.owner==='Myself').reduce((s,c)=>s+Math.max(0,cardCurrent(c)),0);
+ $('networth-metrics').innerHTML=[['Other assets',money(at)],['Other liabilities',money(lt)],['Credit-card debt',money(cards)],['Account balances',money(bank)],['Estimated net worth',money(at+bank-lt-cards)]].map(([a,b])=>'<div class="card"><div class="label">'+a+'</div><div class="metric">'+b+'</div></div>').join('');
+ $('assets-list').innerHTML=data.assets.filter(a=>view==='Family'||a.owner==='Myself').map(a=>'<div class="card"><span class="badge">'+esc(a.kind)+'</span><h3 style="margin-top:10px">'+esc(a.name)+'</h3><p class="small">'+esc(a.owner||'Myself')+'</p><div class="metric">'+money(a.value)+'</div><button class="danger" onclick="removeItem(\'assets\',\''+a.id+'\')">Delete</button></div>').join('')||'<div class="empty">No additional assets or liabilities recorded.</div>';
+}
+
 initAuth();render();
 </script>
 </body>
