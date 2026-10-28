@@ -338,6 +338,8 @@ async function initAuth(){
         });
         return;
       }
+      // When Supabase is configured, never bypass it with a leftover local demo session.
+      $('auth-screen').classList.remove('auth-hidden');switchAuth('login');return;
     }
   }catch(err){console.warn('Supabase authentication initialization failed',err)}
   const email=localStorage.getItem(SESSION_KEY);
