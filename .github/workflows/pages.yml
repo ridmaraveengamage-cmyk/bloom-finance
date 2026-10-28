@@ -15,7 +15,76 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.inside = False
+                  self.current = []
+                  self.scripts = []
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script" and not dict(attrs).get("src"):
+                      self.inside = True
+                      self.current = []
+              def handle_data(self, data):
+                  if self.inside:
+                      self.current.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.inside:
+                      self.scripts.append("".join(self.current))
+                      self.inside = False
+          parser = Scripts()
+          parser.feed(Path("index.html").read_text(encoding="utf-8"))
+          if not parser.scripts:
+              raise SystemExit("No inline scripts found")
+          for i, script in enumerate(parser.scripts, 1):
+              Path(f"/tmp/bloom-inline-{i}.js").write_text(script, encoding="utf-8")
+          print(f"Extracted {len(parser.scripts)} inline script(s)")
+          PY
+          for f in /tmp/bloom-inline-*.js; do node --check "$f"; done
+      - name: Check required feature markers
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s = Path("index.html").read_text(encoding="utf-8")
+          checks = {
+              "transaction editing": "function openTransactionForm(editId)",
+              "credit cards": "function openCardForm()",
+              "credit-card calculation": "function cardCurrent(c)",
+              "Accounts and Cards navigation": "Accounts and Cards",
+              "credit-card balance in overview": "Credit-card outstanding",
+          }
+          missing = [name for name, needle in checks.items() if needle not in s]
+          if missing:
+              raise SystemExit("Missing features: " + ", ".join(missing))
+          report = ["Bloom Finance automated validation report", "JavaScript syntax: passed", "Required feature markers: passed"]
+          Path("validation-report.txt").write_text("\\n".join(report) + "\\n", encoding="utf-8")
+          print("\\n".join(report))
+          PY
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloom-finance-validation-report
+          path: validation-report.txt
   deploy:
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
