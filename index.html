@@ -275,7 +275,7 @@ async function initAuth(){
         render();
         client.auth.onAuthStateChange((_event,session)=>{
           if(session){data.profile.email=session.user.email||'';showWorkspace()}
-          else if(!_('auth-screen')){}
+          else{$('auth-screen').classList.remove('auth-hidden');switchAuth('login')}
         });
         return;
       }
