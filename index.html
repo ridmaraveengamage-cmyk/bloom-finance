@@ -232,7 +232,56 @@ function renderCategories(){const el=$('category-list');if(!el)return;el.innerHT
 function addCategory(e){e.preventDefault();const c=String(new FormData(e.target).get('category')||'').trim();if(!c)return;if(data.categories.some(x=>x.toLowerCase()===c.toLowerCase()))return alert('That category already exists.');data.categories.push(c);save();e.target.reset();toast('Category added')}
 function removeCategory(c){if(!confirm('Remove this category from the available list? Existing transactions will keep their saved category.'))return;data.categories=data.categories.filter(x=>x!==c);save()}
 function parseCSV(text){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i],next=text[i+1];if(ch==='"'&&quoted&&next==='"'){field+='"';i++}else if(ch==='"'){quoted=!quoted}else if(ch===','&&!quoted){row.push(field);field=''}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&next==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=''}else field+=ch}row.push(field);if(row.some(x=>x.trim()))rows.push(row);return rows}
-function importTransactionsCSV(e){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(String(r.result||''));if(rows.length<2)throw Error('The CSV needs a header row and at least one transaction.');const heads=rows.shift().map(x=>x.trim().toLowerCase().replace(/[ _-]/g,''));const find=names=>heads.findIndex(h=>names.includes(h));const ix={date:find(['date','transactiondate','posteddate']),type:find(['type','transactiontype','debitcredit','direction']),description:find(['description','details','payee','merchant','narrative','memo']),amount:find(['amount','value','transactionamount']),category:find(['category']),owner:find(['owner','person'])};if(ix.amount<0||ix.description<0)throw Error('Could not identify amount and description columns. Download the template to see supported headers.');let count=0,skipped=0;rows.forEach(row=>{const val=i=>i>=0?(row[i]||'').trim():'';const amount=Number(val(ix.amount).replace(/,/g,''));if(!Number.isFinite(amount)||amount===0){skipped++;return}let type=val(ix.type).toLowerCase();type=type.includes('income')||type.includes('credit')?'Income':type.includes('transfer')?'Transfer':'Expense';let date=val(ix.date);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}data.transactions.push({id:uid(),date,type,description:val(ix.description)||'Imported transaction',amount:Math.abs(amount),category:val(ix.category)||'Other',owner:val(ix.owner)||'Myself',account:'Imported CSV'});count++});save();alert(`Imported ${count} transaction(s). Skipped ${skipped} row(s). Please compare the results with your original statement.`);e.target.value=''}catch(err){alert('CSV import failed: '+err.message);e.target.value=''}};r.readAsText(f)}
+function importTransactionsCSV(e){
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const rows=parseCSV(String(r.result||'').replace(/^\\uFEFF/,''));
+      if(rows.length<2)throw Error('The CSV needs a header row and at least one transaction.');
+      const heads=rows.shift().map(x=>x.trim().toLowerCase().replace(/^\\uFEFF/,'').replace(/[\\s_-]+/g,'').replace(/[^a-z0-9]/g,''));
+      const find=names=>heads.findIndex(h=>names.includes(h));
+      const ix={
+        date:find(['date','transactiondate','posteddate','valuedate','bookingdate','transactiondatetime','timestamp']),
+        type:find(['type','transactiontype','debitcredit','direction','transactionkind']),
+        description:find(['description','details','payee','merchant','narrative','memo','transactiondetails','transactiondescription','particulars','reference','referencetext','name','beneficiary','counterparty']),
+        amount:find(['amount','value','transactionamount','localamount','foreignamount','sum']),
+        debit:find(['debit','debitamount','withdrawal','withdrawals','moneyout','paidout','outflow']),
+        credit:find(['credit','creditamount','deposit','deposits','moneyin','paidin','inflow']),
+        category:find(['category']),
+        owner:find(['owner','person'])
+      };
+      if(ix.description<0)throw Error('Could not identify a description column. Recognized examples: Description, Details, Transaction Details, Particulars, Payee, or Memo.');
+      if(ix.amount<0&&ix.debit<0&&ix.credit<0)throw Error('Could not identify an amount column. Recognized examples: Amount, Transaction Amount, Debit, Credit, Withdrawal, Deposit, Money Out, or Money In.');
+      let count=0,skipped=0;
+      const parseMoney=value=>{
+        let s=String(value||'').trim().replace(/[₹$£€LKR\\s]/gi,'').replace(/,/g,'');
+        if(!s)return 0;
+        const negative=/^\\(.*\\)$/.test(s);s=s.replace(/[()]/g,'');
+        const n=Number(s);return Number.isFinite(n)?(negative?-Math.abs(n):n):NaN;
+      };
+      rows.forEach(row=>{
+        const val=i=>i>=0?(row[i]||'').trim():'';
+        const debit=ix.debit>=0?parseMoney(val(ix.debit)):0;
+        const credit=ix.credit>=0?parseMoney(val(ix.credit)):0;
+        let amount;
+        if(ix.amount>=0)amount=parseMoney(val(ix.amount));
+        else amount=(Math.abs(credit)>0?Math.abs(credit):0)-(Math.abs(debit)>0?Math.abs(debit):0);
+        if(!Number.isFinite(amount)||amount===0){skipped++;return}
+        let type=val(ix.type).toLowerCase();
+        if(ix.amount<0)type=credit>0?'credit':debit>0?'debit':type;
+        type=type.includes('income')||type.includes('credit')||type.includes('deposit')||type.includes('received')?'Income':type.includes('transfer')?'Transfer':'Expense';
+        let date=val(ix.date);
+        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
+        data.transactions.push({id:uid(),date,type,description:val(ix.description)||'Imported transaction',amount:Math.abs(amount),category:val(ix.category)||'Other',owner:val(ix.owner)||'Myself',account:'Imported CSV'});
+        count++;
+      });
+      if(count===0)throw Error('No valid transactions were found. Check that amount cells contain numbers and the file has one transaction per row.');
+      save();alert(`Imported ${count} transaction(s). Skipped ${skipped} row(s). Please compare the results with your original statement.`);e.target.value='';
+    }catch(err){alert('CSV import failed: '+err.message);e.target.value=''}
+  };
+  r.readAsText(f,'UTF-8');
+}
 function downloadCSVTemplate(){const csv='date,type,description,amount,category,owner\n2026-10-01,Expense,Example grocery purchase,2500,Food,Myself\n';downloadText(csv,'bloom-finance-transactions-template.csv','text/csv')}
 function exportTransactionsCSV(){const rows=[['date','type','description','amount','category','owner','account'],...data.transactions.map(t=>[t.date,t.type,t.description,t.amount,t.category,t.owner,t.account||''])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadText(csv,'bloom-finance-transactions-'+today()+'.csv','text/csv')}
 function downloadText(text,name,type){const blob=new Blob([text],{type}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
