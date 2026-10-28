@@ -234,34 +234,74 @@ function removeCategory(c){if(!confirm('Remove this category from the available 
 function parseCSV(text){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i],next=text[i+1];if(ch==='"'&&quoted&&next==='"'){field+='"';i++}else if(ch==='"'){quoted=!quoted}else if(ch===','&&!quoted){row.push(field);field=''}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&next==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=''}else field+=ch}row.push(field);if(row.some(x=>x.trim()))rows.push(row);return rows}
 function importTransactionsCSV(e){
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
+  const reader=new FileReader();
+  reader.onload=()=>{
     try{
-      const rows=parseCSV(String(r.result||'').replace(/^\uFEFF/,''));
+      let raw=String(reader.result||'').replace(/^\\uFEFF/,'');
+      if(!raw.trim())throw Error('The selected file is empty.');
+      const firstLine=(raw.split(/\\r?\\n/).find(x=>x.trim())||'');
+      const delimiter=[',',';','\\t','|'].map(d=>({d,n:firstLine.split(d).length})).sort((a,b)=>b.n-a.n)[0].d;
+      if(delimiter!==',')raw=raw.replace(/\\r?\\n/g,'\\n');
+      const rows=delimiter===','?parseCSV(raw):raw.split(/\\r?\\n/).filter(x=>x.trim()).map(line=>line.split(delimiter).map(x=>x.trim().replace(/^"|"$/g,'')));
       if(rows.length<2)throw Error('The CSV needs a header row and at least one transaction.');
-      const heads=rows.shift().map(x=>x.trim().toLowerCase().replace(/^\uFEFF/,'').replace(/[\s_-]+/g,'').replace(/[^a-z0-9]/g,''));
+      const originalHeads=rows.shift();
+      const norm=s=>String(s||'').trim().toLowerCase().replace(/^\\uFEFF/,'').replace(/[^a-z0-9]/g,'');
+      const heads=originalHeads.map(norm);
       const find=names=>heads.findIndex(h=>names.includes(h));
+      const findLike=patterns=>heads.findIndex(h=>patterns.some(p=>h.includes(p)));
       const ix={
-        date:find(['date','transactiondate','posteddate','valuedate','bookingdate','transactiondatetime','timestamp']),
-        type:find(['type','transactiontype','debitcredit','direction','transactionkind']),
-        description:find(['description','details','payee','merchant','narrative','memo','transactiondetails','transactiondescription','particulars','reference','referencetext','name','beneficiary','counterparty']),
-        amount:find(['amount','value','transactionamount','localamount','foreignamount','sum']),
-        debit:find(['debit','debitamount','withdrawal','withdrawals','moneyout','paidout','outflow']),
-        credit:find(['credit','creditamount','deposit','deposits','moneyin','paidin','inflow']),
+        date:find(['date','transactiondate','posteddate','valuedate','bookingdate','transactiondatetime','timestamp','txndate','postingdate','effectivedate']),
+        type:find(['type','transactiontype','debitcredit','direction','transactionkind','drcr','crdr']),
+        description:find(['description','details','payee','merchant','narrative','memo','transactiondetails','transactiondescription','particulars','transactionparticulars','txnparticulars','reference','referencetext','name','beneficiary','counterparty','remarks','narration','transactionremarks','transactionnarration','statementdetails','transactioninfo','paymentdetails']),
+        amount:find(['amount','value','transactionamount','localamount','foreignamount','sum','txnamount','transactionvalue']),
+        debit:find(['debit','debitamount','withdrawal','withdrawals','moneyout','paidout','outflow','withdrawalamount','debitlkr','debitrs','dramount']),
+        credit:find(['credit','creditamount','deposit','deposits','moneyin','paidin','inflow','depositamount','creditlkr','creditrs','cramount']),
         category:find(['category']),
         owner:find(['owner','person'])
       };
-      if(ix.description<0)throw Error('Could not identify a description column. Recognized examples: Description, Details, Transaction Details, Particulars, Payee, or Memo.');
-      if(ix.amount<0&&ix.debit<0&&ix.credit<0)throw Error('Could not identify an amount column. Recognized examples: Amount, Transaction Amount, Debit, Credit, Withdrawal, Deposit, Money Out, or Money In.');
-      let count=0,skipped=0;
+      if(ix.description<0){
+        ix.description=findLike(['description','particular','narration','narrative','remark','memo','payee','merchant','beneficiary','counterparty','details','reference','transactioninfo','paymentdetails']);
+      }
+      if(ix.date<0)ix.date=findLike(['transactiondate','postingdate','valuedate','bookingdate','txndate','date']);
+      if(ix.debit<0)ix.debit=findLike(['debit','withdrawal','moneyout','paidout','outflow','dramount']);
+      if(ix.credit<0)ix.credit=findLike(['credit','deposit','moneyin','paidin','inflow','cramount']);
+      if(ix.amount<0)ix.amount=findLike(['transactionamount','txnamount','amount']);
       const parseMoney=value=>{
-        let s=String(value||'').trim().replace(/[₹$£€LKR\s]/gi,'').replace(/,/g,'');
+        let s=String(value||'').trim();
         if(!s)return 0;
-        const negative=/^\(.*\)$/.test(s);s=s.replace(/[()]/g,'');
-        const n=Number(s);return Number.isFinite(n)?(negative?-Math.abs(n):n):NaN;
+        const neg=/^\\(.*\\)$/.test(s)||/^\\s*-/.test(s)||/\\bDR\\b/i.test(s);
+        s=s.replace(/[()]/g,'').replace(/\\b(?:LKR|USD|EUR|GBP|DR|CR)\\b/gi,'').replace(/[^0-9.,+-]/g,'').replace(/,/g,'');
+        if(!s||!/[0-9]/.test(s))return NaN;
+        const n=Number(s);return Number.isFinite(n)?(neg?-Math.abs(n):Math.abs(n)):NaN;
       };
-      rows.forEach(row=>{
-        const val=i=>i>=0?(row[i]||'').trim():'';
+      const isDateLike=v=>{const s=String(v||'').trim();return /^\\d{1,4}[./-]\\d{1,2}[./-]\\d{1,4}$/.test(s)||/^\\d{4}-\\d{2}-\\d{2}/.test(s)||(/^\\d{1,2}\\s+[A-Za-z]{3,}/.test(s));};
+      const dataRows=rows.filter(row=>row.some(cell=>String(cell||'').trim()));
+      if(ix.description<0){
+        let best=-1,bestScore=-1;
+        for(let col=0;col<originalHeads.length;col++){
+          const h=heads[col];
+          if(/date|amount|debit|credit|balance|account|currency|cheque|check|branch|code|type|time|id|number|no$/.test(h))continue;
+          let score=0;
+          dataRows.slice(0,80).forEach(row=>{const v=String(row[col]||'').trim();if(v&&!isDateLike(v)&&!Number.isFinite(parseMoney(v)))score+=Math.min(v.length,60)>2?2:1;});
+          if(score>bestScore){best=col;bestScore=score;}
+        }
+        if(best>=0&&bestScore>0)ix.description=best;
+      }
+      if(ix.amount<0&&ix.debit<0&&ix.credit<0){
+        let best=-1,bestScore=0;
+        for(let col=0;col<originalHeads.length;col++){
+          const h=heads[col];
+          if(/balance|available|opening|closing|account|number|cheque|check|phone|reference|date|time|id/.test(h))continue;
+          let score=0;dataRows.slice(0,80).forEach(row=>{if(String(row[col]||'').trim()&&Number.isFinite(parseMoney(row[col])))score++;});
+          if(score>bestScore){best=col;bestScore=score;}
+        }
+        if(best>=0&&bestScore>0)ix.amount=best;
+      }
+      if(ix.description<0)throw Error('Could not identify the transaction description column. Your bank may use an unfamiliar header. Supported examples include Transaction Particulars, Narration, Remarks, Details, Payee, and Description. Please share only the CSV header row (no account or transaction data) so we can add your bank format.');
+      if(ix.amount<0&&ix.debit<0&&ix.credit<0)throw Error('Could not identify an amount, debit, or credit column. Please share only the CSV header row (no account or transaction data) so we can add your bank format.');
+      let count=0,skipped=0;
+      dataRows.forEach(row=>{
+        const val=i=>i>=0?String(row[i]||'').trim():'';
         const debit=ix.debit>=0?parseMoney(val(ix.debit)):0;
         const credit=ix.credit>=0?parseMoney(val(ix.credit)):0;
         let amount;
@@ -270,17 +310,17 @@ function importTransactionsCSV(e){
         if(!Number.isFinite(amount)||amount===0){skipped++;return}
         let type=val(ix.type).toLowerCase();
         if(ix.amount<0)type=credit>0?'credit':debit>0?'debit':type;
-        type=type.includes('income')||type.includes('credit')||type.includes('deposit')||type.includes('received')?'Income':type.includes('transfer')?'Transfer':'Expense';
+        type=type.includes('income')||type.includes('credit')||type.includes('deposit')||type.includes('received')||type.includes('salary')?'Income':type.includes('transfer')?'Transfer':'Expense';
         let date=val(ix.date);
-        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
+        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
         data.transactions.push({id:uid(),date,type,description:val(ix.description)||'Imported transaction',amount:Math.abs(amount),category:val(ix.category)||'Other',owner:val(ix.owner)||'Myself',account:'Imported CSV'});
         count++;
       });
-      if(count===0)throw Error('No valid transactions were found. Check that amount cells contain numbers and the file has one transaction per row.');
-      save();alert(`Imported ${count} transaction(s). Skipped ${skipped} row(s). Please compare the results with your original statement.`);e.target.value='';
+      if(count===0)throw Error('No valid transactions were found. Check the statement rows and amount cells. Some banks use separate debit and credit columns; if this continues, share only the CSV header row.');
+      save();alert('Imported '+count+' transaction(s). Skipped '+skipped+' row(s). Please compare dates, descriptions, amounts, and income/expense classifications with your original statement.');e.target.value='';
     }catch(err){alert('CSV import failed: '+err.message);e.target.value=''}
   };
-  r.readAsText(f,'UTF-8');
+  reader.readAsText(f,'UTF-8');
 }
 function downloadCSVTemplate(){const csv='date,type,description,amount,category,owner\n2026-10-01,Expense,Example grocery purchase,2500,Food,Myself\n';downloadText(csv,'bloom-finance-transactions-template.csv','text/csv')}
 function exportTransactionsCSV(){const rows=[['date','type','description','amount','category','owner','account'],...data.transactions.map(t=>[t.date,t.type,t.description,t.amount,t.category,t.owner,t.account||''])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadText(csv,'bloom-finance-transactions-'+today()+'.csv','text/csv')}
