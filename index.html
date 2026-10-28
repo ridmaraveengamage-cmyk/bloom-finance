@@ -237,9 +237,9 @@ function importTransactionsCSV(e){
   const r=new FileReader();
   r.onload=()=>{
     try{
-      const rows=parseCSV(String(r.result||'').replace(/^\\uFEFF/,''));
+      const rows=parseCSV(String(r.result||'').replace(/^\uFEFF/,''));
       if(rows.length<2)throw Error('The CSV needs a header row and at least one transaction.');
-      const heads=rows.shift().map(x=>x.trim().toLowerCase().replace(/^\\uFEFF/,'').replace(/[\\s_-]+/g,'').replace(/[^a-z0-9]/g,''));
+      const heads=rows.shift().map(x=>x.trim().toLowerCase().replace(/^\uFEFF/,'').replace(/[\s_-]+/g,'').replace(/[^a-z0-9]/g,''));
       const find=names=>heads.findIndex(h=>names.includes(h));
       const ix={
         date:find(['date','transactiondate','posteddate','valuedate','bookingdate','transactiondatetime','timestamp']),
@@ -255,9 +255,9 @@ function importTransactionsCSV(e){
       if(ix.amount<0&&ix.debit<0&&ix.credit<0)throw Error('Could not identify an amount column. Recognized examples: Amount, Transaction Amount, Debit, Credit, Withdrawal, Deposit, Money Out, or Money In.');
       let count=0,skipped=0;
       const parseMoney=value=>{
-        let s=String(value||'').trim().replace(/[₹$£€LKR\\s]/gi,'').replace(/,/g,'');
+        let s=String(value||'').trim().replace(/[₹$£€LKR\s]/gi,'').replace(/,/g,'');
         if(!s)return 0;
-        const negative=/^\\(.*\\)$/.test(s);s=s.replace(/[()]/g,'');
+        const negative=/^\(.*\)$/.test(s);s=s.replace(/[()]/g,'');
         const n=Number(s);return Number.isFinite(n)?(negative?-Math.abs(n):n):NaN;
       };
       rows.forEach(row=>{
@@ -272,7 +272,7 @@ function importTransactionsCSV(e){
         if(ix.amount<0)type=credit>0?'credit':debit>0?'debit':type;
         type=type.includes('income')||type.includes('credit')||type.includes('deposit')||type.includes('received')?'Income':type.includes('transfer')?'Transfer':'Expense';
         let date=val(ix.date);
-        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
         data.transactions.push({id:uid(),date,type,description:val(ix.description)||'Imported transaction',amount:Math.abs(amount),category:val(ix.category)||'Other',owner:val(ix.owner)||'Myself',account:'Imported CSV'});
         count++;
       });
