@@ -237,15 +237,15 @@ function importTransactionsCSV(e){
   const reader=new FileReader();
   reader.onload=()=>{
     try{
-      let raw=String(reader.result||'').replace(/^\\uFEFF/,'');
+      let raw=String(reader.result||'').replace(/^\uFEFF/,'');
       if(!raw.trim())throw Error('The selected file is empty.');
-      const firstLine=(raw.split(/\\r?\\n/).find(x=>x.trim())||'');
-      const delimiter=[',',';','\\t','|'].map(d=>({d,n:firstLine.split(d).length})).sort((a,b)=>b.n-a.n)[0].d;
-      if(delimiter!==',')raw=raw.replace(/\\r?\\n/g,'\\n');
-      const rows=delimiter===','?parseCSV(raw):raw.split(/\\r?\\n/).filter(x=>x.trim()).map(line=>line.split(delimiter).map(x=>x.trim().replace(/^"|"$/g,'')));
+      const firstLine=(raw.split(/\r?\n/).find(x=>x.trim())||'');
+      const delimiter=[',',';','\t','|'].map(d=>({d,n:firstLine.split(d).length})).sort((a,b)=>b.n-a.n)[0].d;
+      if(delimiter!==',')raw=raw.replace(/\r?\n/g,'\n');
+      const rows=delimiter===','?parseCSV(raw):raw.split(/\r?\n/).filter(x=>x.trim()).map(line=>line.split(delimiter).map(x=>x.trim().replace(/^"|"$/g,'')));
       if(rows.length<2)throw Error('The CSV needs a header row and at least one transaction.');
       const originalHeads=rows.shift();
-      const norm=s=>String(s||'').trim().toLowerCase().replace(/^\\uFEFF/,'').replace(/[^a-z0-9]/g,'');
+      const norm=s=>String(s||'').trim().toLowerCase().replace(/^\uFEFF/,'').replace(/[^a-z0-9]/g,'');
       const heads=originalHeads.map(norm);
       const find=names=>heads.findIndex(h=>names.includes(h));
       const findLike=patterns=>heads.findIndex(h=>patterns.some(p=>h.includes(p)));
@@ -269,12 +269,12 @@ function importTransactionsCSV(e){
       const parseMoney=value=>{
         let s=String(value||'').trim();
         if(!s)return 0;
-        const neg=/^\\(.*\\)$/.test(s)||/^\\s*-/.test(s)||/\\bDR\\b/i.test(s);
-        s=s.replace(/[()]/g,'').replace(/\\b(?:LKR|USD|EUR|GBP|DR|CR)\\b/gi,'').replace(/[^0-9.,+-]/g,'').replace(/,/g,'');
+        const neg=/^\(.*\)$/.test(s)||/^\s*-/.test(s)||/\bDR\b/i.test(s);
+        s=s.replace(/[()]/g,'').replace(/\b(?:LKR|USD|EUR|GBP|DR|CR)\b/gi,'').replace(/[^0-9.,+-]/g,'').replace(/,/g,'');
         if(!s||!/[0-9]/.test(s))return NaN;
         const n=Number(s);return Number.isFinite(n)?(neg?-Math.abs(n):Math.abs(n)):NaN;
       };
-      const isDateLike=v=>{const s=String(v||'').trim();return /^\\d{1,4}[./-]\\d{1,2}[./-]\\d{1,4}$/.test(s)||/^\\d{4}-\\d{2}-\\d{2}/.test(s)||(/^\\d{1,2}\\s+[A-Za-z]{3,}/.test(s));};
+      const isDateLike=v=>{const s=String(v||'').trim();return /^\d{1,4}[./-]\d{1,2}[./-]\d{1,4}$/.test(s)||/^\d{4}-\d{2}-\d{2}/.test(s)||(/^\d{1,2}\s+[A-Za-z]{3,}/.test(s));};
       const dataRows=rows.filter(row=>row.some(cell=>String(cell||'').trim()));
       if(ix.description<0){
         let best=-1,bestScore=-1;
@@ -312,7 +312,7 @@ function importTransactionsCSV(e){
         if(ix.amount<0)type=credit>0?'credit':debit>0?'debit':type;
         type=type.includes('income')||type.includes('credit')||type.includes('deposit')||type.includes('received')||type.includes('salary')?'Income':type.includes('transfer')?'Transfer':'Expense';
         let date=val(ix.date);
-        if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){const dt=new Date(date);date=isNaN(dt)?today():dt.toISOString().slice(0,10)}
         data.transactions.push({id:uid(),date,type,description:val(ix.description)||'Imported transaction',amount:Math.abs(amount),category:val(ix.category)||'Other',owner:val(ix.owner)||'Myself',account:'Imported CSV'});
         count++;
       });
