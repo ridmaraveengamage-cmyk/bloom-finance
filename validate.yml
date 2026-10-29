@@ -1,0 +1,79 @@
+# Runs on every change: checks the app's code and runs all database security tests
+# against a throwaway PostgreSQL database. Netlify only publishes what's on main.
+name: Checks
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  app:
+    name: App code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re, pathlib, sys
+          s = pathlib.Path("index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", s, re.S)
+          if not scripts: sys.exit("No app script found in index.html")
+          for i, js in enumerate(scripts, 1):
+              pathlib.Path(f"/tmp/app-{i}.js").write_text(js, encoding="utf-8")
+          print(f"Found {len(scripts)} script block(s)")
+          PY
+          for f in /tmp/app-*.js; do node --check "$f"; done
+      - name: Check key features are present
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys
+          s = pathlib.Path("index.html").read_text(encoding="utf-8")
+          need = {
+            "sign-in start-up": "async function boot()",
+            "Google sign-in": "signInWithOAuth",
+            "sign-up details": "username_available",
+            "ledger": "function calc(asOf,skip)",
+            "Supabase settings file": 'src="supabase-config.js"',
+          }
+          missing = [k for k, v in need.items() if v not in s]
+          if missing: sys.exit("Missing: " + ", ".join(missing))
+          print("All key features present")
+          PY
+  database:
+    name: Database security tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -q && sudo apt-get install -y -q postgresql-client
+      - name: Apply migrations
+        run: |
+          createdb bloomtest
+          psql -q -v ON_ERROR_STOP=1 -d bloomtest -f supabase/tests/local_auth_stub.sql
+          for f in $(ls supabase/migrations/*.sql | sort); do echo "Applying $f"; psql -q -v ON_ERROR_STOP=1 -d bloomtest -f "$f"; done
+      - name: Run tests
+        run: |
+          for t in security_and_ledger_test group_access_and_goals_test transaction_group_tags_test profile_signup_test; do
+            echo "== $t"
+            psql -q -d bloomtest -f supabase/tests/$t.sql 2>&1 | tee /tmp/$t.log | grep -E "PASS|FAIL|ERROR" || true
+            grep -q "ALL TESTS PASSED" /tmp/$t.log || { echo "::error::$t failed"; exit 1; }
+          done
