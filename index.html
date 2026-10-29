@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://lljjqsyivqstwcdxkicb.supabase.co wss://lljjqsyivqstwcdxkicb.supabase.co; worker-src 'self' blob:; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bloom Finance</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%231D6B4C%22/%3E%3Cg%20transform%3D%22translate%285%203%29%20scale%28.84%29%22%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20fill-opacity%3D%22.45%22%20d%3D%22M19%2052%20C12.5%2046.0%2012.5%2039.8%2019%2035%20C25.5%2039.8%2025.5%2046.0%2019%2052%20Z%22/%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20fill-opacity%3D%22.75%22%20d%3D%22M32%2052%20C25.5%2042.5%2025.5%2032.6%2032%2025%20C38.5%2032.6%2038.5%2042.5%2032%2052%20Z%22/%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20d%3D%22M45%2052%20C38.5%2038.7%2038.5%2024.6%2045%2014%20C51.5%2024.6%2051.5%2038.7%2045%2052%20Z%22/%3E%3Cpath%20d%3D%22M11%2056%20L53%2056%22%20stroke%3D%22%23F0CF7E%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3C/svg%3E">
@@ -1093,7 +1095,7 @@ async function authAct(a){
     if(!ph)return aerr("Enter a valid mobile number.");
     if(!okPass(pw2))return aerr("Use at least 8 characters for your password, with a letter and a number.");
     if(AUTH.preview)return previewBlock();
-    var free=await AUTH.client.rpc("username_available",{p_username:un}).catch(function(){return{}});
+    var free=await AUTH.client.rpc("username_available",{p_username:un}).then(null,function(){return{}});
     if(free&&free.data===false)return aerr("That username is already taken. Try another.");
     await run(function(){return AUTH.client.auth.signUp({email:em2,password:pw2,options:{data:{username:un,phone:ph,country:co},emailRedirectTo:location.origin+location.pathname}})},
       function(r){if(r.data&&r.data.session)afterSignIn(r.data.user);else{AUTH.view="login";authRender();aerr("Account created. We’ve sent a link to "+em2+". Confirm your email, then log in.",true)}});return}
@@ -1111,7 +1113,7 @@ async function oauth(p){if(AUTH.preview)return previewBlock();
   await run(function(){return AUTH.client.auth.signInWithOAuth({provider:p,options:{redirectTo:location.origin+location.pathname}})},function(){aerr("Opening "+(p==="google"?"Google":"Apple")+"…",true)})}
 async function afterSignIn(user){
   AUTH.user=user;
-  var r=await AUTH.client.from("profiles").select("username,phone,country,base_currency").eq("id",user.id).maybeSingle().catch(function(e){return{error:e}});
+  var r=await AUTH.client.from("profiles").select("username,phone,country,base_currency").eq("id",user.id).maybeSingle().then(null,function(e){return{error:e}});
   if(r.error){showAuth("login");aerr("You’re signed in, but your profile couldn’t be loaded: "+friendly(r.error));return}
   AUTH.profile=r.data||{};
   if(!AUTH.profile.username||!AUTH.profile.phone||!AUTH.profile.country){var m=user.user_metadata||{};AUTH.profile.username=AUTH.profile.username||"";AUTH.profile.country=AUTH.profile.country||m.country||"";showAuth("profile");return}
