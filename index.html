@@ -115,14 +115,38 @@ nav{overflow-x:auto;justify-content:flex-start}nav button{min-width:76px}@media(
 details.cat{margin-bottom:12px}details.cat summary{list-style:none;cursor:pointer}details.cat summary::-webkit-details-marker{display:none}details.cat[open] summary{margin-bottom:6px}
 .pbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.pbar select{width:auto}#ml{flex:1;text-align:center;min-width:150px}
 nav button{font-size:12px;padding:10px 2px;line-height:1.2}
+
+/* ---------- Wide screens: full website layout (phones keep the app layout) ---------- */
+.navbrand,.aside{display:none}
+@media (min-width:1024px){
+  header{display:none}
+  nav{position:fixed;top:0;bottom:0;left:0;right:auto;width:236px;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:2px;border-top:0;border-right:1px solid var(--line);padding:22px 12px;overflow-y:auto}
+  nav button{flex:none;max-width:none;min-width:0;text-align:left;padding:11px 14px;border-radius:10px;font-size:14px;line-height:1.3}
+  nav button[aria-current="page"]{box-shadow:none;background:rgba(46,125,78,.13)}
+  .navbrand{display:flex;padding:4px 10px 24px}
+  .wrap{max-width:none;margin:0 0 0 236px;padding:28px clamp(28px,4vw,56px) 64px}
+  .wrap>*{max-width:1360px}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+  .hero{padding:28px 32px}
+  .fab{bottom:28px;right:32px}
+  .mobile-only{display:none!important}
+  .auth{grid-template-columns:minmax(0,1.15fr) minmax(400px,1fr);place-items:stretch;padding:0;gap:0}
+  .aside{display:flex;flex-direction:column;justify-content:center;padding:64px clamp(40px,7vw,120px);background:linear-gradient(160deg,#1D6B4C,#123f2e);color:#F2F8F4}
+  .aside .lg-i{fill:#F2F8F4}.aside .lg-a{stroke:#F0CF7E}
+  .aside h2{font-family:"Bricolage Grotesque","DM Sans",system-ui,sans-serif;font-size:clamp(36px,3.6vw,56px);line-height:1.06;letter-spacing:-.02em;margin:28px 0 16px;color:#fff}
+  .aside p{font-size:18px;max-width:540px;margin:0;opacity:.92}
+  .aside ul{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:12px;font-size:16px}
+  .aside li:before{content:"✓";color:#F0CF7E;font-weight:700;margin-right:10px}
+  .auth>.acard{align-self:center;justify-self:center;margin:40px}
+}
 </style>
 </head>
 <body>
-<div id="auth" class="auth" hidden><div class="acard">
+<div id="auth" class="auth" hidden><div class="aside" aria-hidden="true"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><h2>Your money,<br>clearly.</h2><p>Bank accounts, cards, spending, budgets, savings goals and shared family money, all in one calm place.</p><ul><li>See your net worth and cash flow at a glance</li><li>Budgets, goals and detailed reports</li><li>Share with family or friends, on your terms</li><li>Works on your phone, tablet and computer</li></ul></div><div class="acard">
   <div class="brand brandbar" role="img" aria-label="Bloom Finance"><svg width="50" height="50" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:34px"><b>bloom</b><span> finance</span></span></div><div class="s">Your money, clearly.</div>
   <div class="note" id="apv" hidden style="margin:14px 0 0">This is a preview. Logging in and signing up work once Bloom runs on its own website, because the preview can’t connect to outside servers.<br><button type="button" class="pri" data-aact="local" style="margin-top:10px">Continue on this device</button></div>
   <div class="seg2" id="atabs" role="tablist" aria-label="Log in or sign up"><button type="button" id="atl" role="tab" data-av="login">Log in</button><button type="button" id="ats" role="tab" data-av="signup">Sign up</button></div>
-  <div id="aform"></div><div class="err" id="aer" role="alert" aria-live="polite"></div><button type="button" class="link wide" id="ainst" data-pwa="install" hidden>Install Bloom as an app</button>
+  <div id="aform"></div><div class="err" id="aer" role="alert" aria-live="polite"></div><button type="button" class="link wide mobile-only" id="ainst" data-pwa="install" hidden>Install Bloom as an app</button>
 </div></div>
 <div class="wrap">
   <header><h1 class="brandbar" aria-label="Bloom Finance"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:25px" aria-hidden="true"><b>bloom</b><span> finance</span></span></h1></header>
@@ -367,7 +391,7 @@ function chg(n,c){return n===0?"No change this period":(n>0?"▲ +":"▼ −")+f
 function render(){
   $("ml").textContent=label();$("pt").value=per;
   var tabs=[["ov","Overview"],["tx","Transactions"],["ac","Cash and Bank Accounts"],["al","Assets & Liabilities"],["an","Analysis"],["bu","Budgets & Goals"],["gr","Groups"],["dc","Documents"],["mo","More"]];
-  $("nav").innerHTML=tabs.map(function(t){return '<button data-t="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':"")+'>'+t[1]+'</button>'}).join("");
+  var hb=document.querySelector("header h1");$("nav").innerHTML='<div class="navbrand" aria-hidden="true">'+(hb?'<span class="brandbar">'+hb.innerHTML+'</span>':'')+'</div>'+tabs.map(function(t){return '<button data-t="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':"")+'>'+t[1]+'</button>'}).join("");
   var r=range(),h="";
   if(tab==="ov"){
     var E=calc(r.E),B=calc(ds(new Date(r.s.getFullYear(),r.s.getMonth(),r.s.getDate()-1))),F=flows(r),c0=E.curs[0],e=E.T[c0],b=B.T[c0]||{liquid:0,assets:0,liab:0,net:0,bank:0,cash:0,card:0,loan:0};
@@ -1398,12 +1422,12 @@ function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigato
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();PWA.prompt=e;var b=$("ainst");if(b)b.hidden=false;if(tab==="mo")render()});
 window.addEventListener("appinstalled",function(){PWA.installed=true;PWA.prompt=null;var b=$("ainst");if(b)b.hidden=true;if(tab==="mo")render()});
 function installCard(){
-  if(isStandalone()||PWA.installed)return '<h2>App</h2><div class="card"><p class="s" style="margin:0">✓ Bloom is installed on this device.</p></div>';
+  if(isStandalone()||PWA.installed)return '<div class="mobile-only"><h2>App</h2><div class="card"><p class="s" style="margin:0">✓ Bloom is installed on this device.</p></div></div>';
   var h='<h2>Install the app</h2><div class="card"><p class="s" style="margin-top:0">Use Bloom like a normal app: an icon on your home screen, full screen, and it works without internet.</p>';
   if(PWA.prompt)h+='<button class="pri" data-pwa="install">Install Bloom</button>';
   else if(isIOS())h+='<p style="margin:0">On iPhone or iPad: open this page in <b>Safari</b>, tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</p>';
   else h+='<p style="margin:0">In Chrome or Edge, open the browser menu and choose <b>Install app</b> or <b>Add to Home screen</b>.</p>';
-  return h+'</div>'}
+  return '<div class="mobile-only">'+h+'</div></div>'}
 async function pwaInstall(){if(!PWA.prompt)return;PWA.prompt.prompt();var c=await PWA.prompt.userChoice.catch(function(){return{}});PWA.prompt=null;if(c&&c.outcome==="accepted"){PWA.installed=true;var b=$("ainst");if(b)b.hidden=true}render()}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.pwa==="install"){e.stopPropagation();pwaInstall()}},true);
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!isPreview()){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
