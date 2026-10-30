@@ -387,6 +387,42 @@ html[data-style="wal"] .hero{box-shadow:none;margin-top:0}
 
 .pbar button.pri{background:var(--g);color:var(--accink,#fff);border-color:var(--g)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* ===== v0.16 Midnight design system (light + dark) ===== */
+html{--warn:#9A6B00}html[data-theme="dark"]{--warn:#F0C24F}
+body,button,input,select,textarea{font-family:"Manrope",system-ui,sans-serif}
+h1,h2,h3,.big,.tile b,.aside h2{font-family:"Manrope",system-ui,sans-serif}
+h2{font-size:15px;font-weight:700;letter-spacing:0}
+.card{border-radius:18px;border:1px solid var(--line);background:var(--card)}
+input,select{min-height:44px;border-radius:12px}
+textarea{border-radius:12px}
+button{border-radius:12px;min-height:40px;font-weight:600}
+.pri{background:var(--g);color:var(--accink,#fff);border-color:var(--g)}
+.note{background:none;border:0;padding:0 2px;margin:2px 0 10px;font-size:12px}
+.hdr-av{border:0;cursor:pointer;flex:none}
+header .hdr-av{width:44px;height:44px;font-size:17px}
+.x-chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.x-chip{height:36px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:13px}
+.x-chip[aria-pressed="true"]{border-color:var(--g);background:var(--chip);color:var(--g)}
+.x-search{display:flex;align-items:center;gap:8px;height:46px;padding:0 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--mute);margin-top:4px}
+.x-search input{flex:1;min-width:0;border:0;outline:0;background:none;min-height:0;height:40px;color:var(--ink);font-size:15px;padding:0}
+.x-day{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:14px 4px 6px}
+.x-two2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 6px}
+.x-two2 .card{padding:12px 14px;margin:0}
+.x-big{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.x-act{display:flex;gap:8px;margin-top:12px}.x-act button{flex:1;height:44px;background:var(--track);border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px}
+.x-act button .ico{color:var(--g)}
+.x-prof{display:flex;align-items:center;gap:14px;border-radius:22px;padding:18px}
+.x-prof .hdr-av{width:52px;height:52px;font-size:21px}
+.x-out{width:100%;height:50px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--r);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px}
+.x-owe{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:3px;margin:12px 0 8px}
+.item .x-ic{width:40px;height:40px;border-radius:12px;background:var(--track);display:grid;place-items:center;flex:none;margin-right:12px;color:var(--ink)}
+.item .x-ic.in{color:var(--g)}
+#am{font-size:30px;font-weight:800;text-align:center;height:60px}
+@media (max-width:1023px){
+  dialog{margin:auto 0 0;width:100%;max-width:100%;box-sizing:border-box;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;border:0}
+  dialog:before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
+}
+
 </style>
 </head>
 <body>
@@ -398,10 +434,10 @@ html[data-style="wal"] .hero{box-shadow:none;margin-top:0}
   <div id="aform"></div><div class="err" id="aer" role="alert" aria-live="polite"></div><button type="button" class="link wide mobile-only" id="ainst" data-pwa="install" hidden>Install Bloom as an app</button>
 </div></div>
 <div class="wrap">
-  <header><h1 class="brandbar" aria-label="Bloom Finance"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:25px" aria-hidden="true"><b>bloom</b><span> finance</span></span></h1><button type="button" class="stylebtn" data-sty="open" aria-label="App style"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.9-.6-1.3-.6-2.1 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.9-4-8.9-9-8.9zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01"></path></svg></button></header>
+  <header><h1 class="brandbar" aria-label="Bloom Finance"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:25px" aria-hidden="true"><b>bloom</b><span> finance</span></span></h1></header>
   <div class="pbar"><div class="ptitle desk-only"></div><select id="pt" aria-label="Time period"><option value="d">Daily</option><option value="w">Weekly</option><option value="m" selected>Monthly</option><option value="q">Quarterly</option><option value="h">6 months</option><option value="y">Annual</option></select>
-    <button id="pm" aria-label="Previous period">‹</button><strong id="ml"></strong><button id="nm" aria-label="Next period">›</button><button id="td">Today</button><button type="button" class="desk-only" data-sty="open" style="align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.9-.6-1.3-.6-2.1 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.9-4-8.9-9-8.9zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01"></path></svg>Style</button><button type="button" class="desk-only pri" data-qa="add">+ Add transaction</button></div>
-  <div class="note">Version 0.15 · <span id="syncst">Not signed in · data is saved on this device only</span></div>
+    <button id="pm" aria-label="Previous period">‹</button><strong id="ml"></strong><button id="nm" aria-label="Next period">›</button><button id="td">Today</button><button type="button" class="desk-only pri" data-qa="add">+ Add transaction</button></div>
+  <div class="note"><span id="syncst">Not signed in · data is saved on this device only</span></div>
   <main id="main"></main>
 </div>
 <button class="fab pri" id="fab">+ Transaction</button>
@@ -488,7 +524,7 @@ function tOut(t){return t.type==="transfer"&&/_out$/.test(t.tsub||"")}function t
 var txf="";
 var S={accounts:[],cards:[],assets:[],liabs:[],tx:[],budgets:{},base:"LKR",custom:{expense:{},income:{}},groups:[],goals:[],docs:[]},tab="ov",per="m",anc=new Date(),editId=null,editAc=null,editAL=null,alKind="asset";
 var $=function(i){return document.getElementById(i)};
-var UI={style:"wal",mode:"auto"};try{Object.assign(UI,JSON.parse(localStorage.getItem("bloom-ui")||"{}"))}catch(e){}
+var UI={style:"wal",mode:"auto"};try{Object.assign(UI,JSON.parse(localStorage.getItem("bloom-ui")||"{}"))}catch(e){}UI.style="mid";
 var MQ=window.matchMedia?matchMedia("(prefers-color-scheme: dark)"):null;
 function applyUI(){var dk=UI.mode==="dark"||(UI.mode==="auto"&&!!(MQ&&MQ.matches));var r=document.documentElement;r.setAttribute("data-style",UI.style);r.setAttribute("data-theme",dk?"dark":"light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",(getComputedStyle(r).getPropertyValue("--bg")||"").trim()||"#1D6B4C")}
 function setUI(k,v){UI[k]=v;try{localStorage.setItem("bloom-ui",JSON.stringify(UI))}catch(e){}applyUI();if(typeof render==="function"&&!$("auth").hidden===false)render()}
@@ -616,7 +652,7 @@ function tagSync(sel){var gr=$("tgg").checked;
 function txRow(t){
   var c=curOf(t),d=dir(t),k=kindOf(t),sign=d>0?"+":d<0?"−":"",cls=d>0?"pos":d<0?"neg":"";
   var extra=t.type==="loanpay"?" · principal "+fmt(t.amt,c)+(t.int?" + interest "+fmt(t.int,c):""):"";
-  return '<div class="item"><div class="m"><div>'+esc(t.note||t.cat||k)+'</div><div class="s">'+(t.cat?esc(t.cat)+(t.sub?" › "+esc(t.sub):""):esc(k))+' · '+nice(t.date)+' · '+esc(pathOf(t))+extra+tagLbl(t)+'</div></div>'+
+  return '<div class="item"><div class="x-ic'+(d>0?' in':'')+'">'+ico(txIcon(t),18)+'</div><div class="m"><div>'+esc(t.note||t.cat||k)+'</div><div class="s">'+(t.cat?esc(t.cat)+(t.sub?" › "+esc(t.sub):""):esc(k))+' · '+nice(t.date)+' · '+esc(pathOf(t))+extra+tagLbl(t)+'</div></div>'+
     '<div class="row"><span class="amt '+cls+'">'+sign+fmt(t.amt+(t.int||0),c)+'</span><button class="x" data-e="'+t.id+'">Edit</button><button class="x" data-d="'+t.id+'" aria-label="Delete transaction">✕</button></div></div>';
 }
 function acRow(x,bal,isCard){
@@ -652,14 +688,12 @@ function render(){
   if(tab==="ov"){
     h+=renderOV(r);
   }else if(tab==="tx"){
-    var L=flows(r).list;
-    if(txf==="personal")L=L.filter(function(t){return !(t.groups&&t.groups.length)});else if(txf)L=L.filter(function(t){return (t.groups||[]).indexOf(txf)>=0});
-    if(txf&&txf!=="personal"&&!G(txf))txf="";
-    h+='<div class="row" style="flex-wrap:wrap"><h2>Transactions · '+esc(label())+'</h2>'+(S.groups.length?'<select id="txf" aria-label="Show" style="width:auto"><option value="">All transactions</option><option value="personal"'+(txf==="personal"?" selected":"")+'>Personal only</option>'+S.groups.map(function(g){return '<option value="'+g.id+'"'+(txf===g.id?" selected":"")+'>👥 '+esc(g.name)+'</option>'}).join("")+'</select>':'')+'</div><div class="card">'+(L.length?L.map(txRow).join(""):'<div class="empty">No transactions in this period.</div>')+'</div>';
+    h+=txScreen(r);
   }else if(tab==="ac"){
     var C=calc();
     var cashA=cashes(),bankA=banks();
-    h+='<div class="row" style="flex-wrap:wrap"><h2>Cash in hand</h2><div class="row">'+(cashA.length&&bankA.length?'<button data-q="withdraw">Withdraw cash</button><button data-q="deposit">Deposit cash</button>':'')+(cashA.length?'<button data-a="cash" aria-label="Add another cash wallet">+</button>':'')+'</div></div><div class="card">'+(cashA.length?cashA.map(function(x){return acRow(x,C.a[x.id],false)}).join(""):'<div class="empty">Track the cash in your wallet or at home.</div><button class="pri" data-a="cash">Set up cash in hand</button>')+'</div>';
+    h+=acTotal(C);
+    h+='<div class="row" style="flex-wrap:wrap"><h2>Cash in hand</h2><div class="row">'+''+(cashA.length?'<button data-a="cash" aria-label="Add another cash wallet">+</button>':'')+'</div></div><div class="card">'+(cashA.length?cashA.map(function(x){return acRow(x,C.a[x.id],false)}).join(""):'<div class="empty">Track the cash in your wallet or at home.</div><button class="pri" data-a="cash">Set up cash in hand</button>')+'</div>';
     h+='<div class="row"><h2>Bank accounts</h2><button class="pri" data-a="bank">Add</button></div><div class="card">'+(bankA.length?bankA.map(function(x){return acRow(x,C.a[x.id],false)}).join(""):'<div class="empty">No bank accounts yet.</div>')+'</div>';
     h+='<div class="s">A debit card is a way to pay from a bank account. Choose “Bank → Debit card” when you record the purchase. Credit cards are under Assets &amp; Liabilities.</div>';
   }else if(tab==="al"){h+=renderAL()}
@@ -672,15 +706,15 @@ function render(){
       return '<div style="margin-bottom:14px"><div class="row"><span>'+esc(k)+'<span class="s"> · spent '+fmt(sp)+'</span></span><input class="bin" type="number" min="0" step="any" data-b="'+esc(k)+'" value="'+(lim?unit(lim,S.base):"")+'" placeholder="Limit" aria-label="'+esc(k)+' budget"></div><div class="track"><div class="fill '+cl+'" style="width:'+p+'%"></div></div>'+(lim?'<div class="s">'+(sp>lim?"Over by "+fmt(sp-lim):fmt(lim-sp)+" left")+' · '+Math.round(sp/lim*100)+'% used</div>':"")+'</div>'}).join("")+'<div class="s">Budgets are monthly and count all spending in '+S.base+', including credit-card purchases. Loan interest counts toward Financial costs.</div></div>';
     h+=renderGoals();
   }else{
-    h+=moreLinks()+accountCard()+logoutCard()+appearanceCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
-    h+='<h2>Backup &amp; restore</h2><div class="card"><p class="s" style="margin-top:0">Your data lives only in this browser and can be lost if browser data is cleared. Copy a backup and keep it somewhere safe.</p><div class="btns" style="justify-content:flex-start;margin:0 0 10px;flex-wrap:wrap"><button class="pri" data-bk="show">Create backup</button><button data-bk="copy">Copy</button><button data-bk="restore">Restore from text</button></div><label for="bkt">Backup text</label><textarea id="bkt" rows="7" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px" placeholder="Press Create backup, or paste a backup here and press Restore."></textarea><div class="err" id="bke" role="alert"></div></div>';
-    h+='<div class="card"><h3>Erase everything</h3><p class="s">Removes all accounts, cards, assets, liabilities, transactions, budgets, custom categories, groups, goals and document details from this browser.</p><button data-bk="erase" style="color:var(--r)">Erase all data</button></div>';
+    h+=profileCard()+moreLinks()+appearanceCard()+accountCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
+    h+='<h2>Backup &amp; restore</h2><div class="card"><p class="s" style="margin-top:0">Keep a copy of all your Bloom data somewhere safe, or restore from a copy you made earlier.</p><div class="btns" style="justify-content:flex-start;margin:0 0 10px;flex-wrap:wrap"><button class="pri" data-bk="show">Create backup</button><button data-bk="copy">Copy</button><button data-bk="restore">Restore from text</button></div><label for="bkt">Backup text</label><textarea id="bkt" rows="7" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px" placeholder="Press Create backup, or paste a backup here and press Restore."></textarea><div class="err" id="bke" role="alert"></div></div>';
+    h+='<div class="card"><h3>Erase everything</h3><p class="s">Removes all accounts, cards, assets, liabilities, transactions, budgets, custom categories, groups, goals and document details from Bloom.</p><button data-bk="erase" style="color:var(--r)">Erase all data</button></div>'+(AUTH.user?'<button class="x-out" data-aact="logout">'+ico("logout",18)+'Log out</button>':'');
   }
   $("main").innerHTML=h;
 }
 
 function renderAL(){
-  var C=calc(),h='',av=avg3();
+  var C=calc(),h=alSummary(C),av=avg3();
   h+='<div class="row" style="flex-wrap:wrap"><h2>Assets</h2><div class="row"><button data-a="bank">Add bank or cash</button><button class="pri" data-al="asset">Add asset</button></div></div><div class="s">Current values</div><div class="card">';
   h+=S.accounts.map(function(x){return acRow(x,C.a[x.id],false)}).join("");
   h+=S.assets.map(function(x){var v=x.vals.slice().sort(function(a,b){return a.d.localeCompare(b.d)}),last=v[v.length-1],prev=v[v.length-2];
@@ -1408,7 +1442,7 @@ function logoutCard(){return AUTH.user?'<div class="card" style="display:flex;ju
 function accountCard(){return installCard()+accountCard0()}
 function accountCard0(){
   if(AUTH.user){var p=AUTH.profile||{};return '<h2>Account</h2><div class="card"><div class="mini" style="margin-top:0">'+mini("Username",esc(p.username||"—"))+mini("Email",esc(AUTH.user.email||"—"))+mini("Mobile",esc(p.phone||"—"))+mini("Country",esc(p.country||"—"))+'</div>'+
-    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button><button data-aact="logout" style="color:var(--r)">Log out</button></div><div class="s">Your data is kept on this device, separately for each account. Syncing to the cloud is the next step.</div></div>'}
+    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button></div><div class="s">Your data is kept on this device, separately for each account. Syncing to the cloud is the next step.</div></div>'}
   return '<h2>Account</h2><div class="card"><p class="s" style="margin-top:0">You’re using Bloom on this device without an account.'+(AUTH.preview?' Signing in works when Bloom runs on its own website.':'')+'</p><button class="pri" data-aact="showlogin">Log in or sign up</button></div>'}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var D2=b.dataset;
   if(D2.aact){e.stopPropagation();if(D2.aact==="logout"){ask("Log out of Bloom on this device?",function(){authAct("signout")},"Log out")}
@@ -1673,7 +1707,7 @@ function stylePicker(){
 function appearanceCard(){
   var mk=function(v,l,i){return '<button type="button" data-mode="'+v+'" aria-pressed="'+(UI.mode===v)+'"><span aria-hidden="true">'+i+'</span>'+l+'</button>'};
   return '<h2>Appearance</h2><div class="card"><div style="font-weight:600">Mode</div><div class="modeseg">'+mk("light","Light","☀")+mk("dark","Dark","☾")+mk("auto","Match device","◐")+'</div><div class="s" style="margin-top:8px">Applies to every app style. “Match device” follows your phone or computer’s setting.</div>'+
-   '<div class="item" style="margin-top:10px"><div class="m"><div>App style</div><div class="s">'+STYLES[UI.style]+' · you can also change it from the Overview</div></div><button type="button" data-sty="open">Change</button></div></div>'}
+   '</div>'}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset;
   if(d.sty){e.stopPropagation();if(d.sty==="open")stylePicker();else if(d.sty==="close")$("dsty").close();else{setUI("style",d.sty);stylePicker()}}
   else if(d.mode){e.stopPropagation();setUI("mode",d.mode)}},true);
@@ -1741,7 +1775,7 @@ function headerRender(){
   if(st==="mid")l=logoSVG(30)+'<div><div class="hdr-g">'+greet()+'</div><div class="hdr-n">'+esc(who())+'</div></div>';
   else if(st==="ben")l='<div class="hdr-av" aria-hidden="true">'+esc(who().charAt(0).toUpperCase())+'</div><div><div class="hdr-g">Hello,</div><div class="hdr-n">'+esc(who())+'</div></div>';
   else l=logoSVG(28)+'<span class="hdr-wm">bloom</span>';
-  document.querySelector("header").innerHTML='<h1 class="hdr-l" style="margin:0;font-size:inherit">'+l+'<span class="vh">Bloom Finance</span></h1><button type="button" class="stylebtn" data-sty="open" aria-label="App style">'+ico("swatch",20)+'</button>';
+  document.querySelector("header").innerHTML='<h1 class="hdr-l" style="margin:0;font-size:inherit">'+l+'<span class="vh">Bloom Finance</span></h1><button type="button" class="hdr-av" data-t="mo" aria-label="Account and settings">'+esc(who().charAt(0).toUpperCase())+'</button>';
   var pt=document.querySelector(".ptitle");if(pt)pt.innerHTML='<div class="hdr-g">'+greet()+', '+esc(who())+'</div><div class="pt-h">'+TABN[tab]+'</div>';
   document.body.className=document.body.className.replace(/\bst-\w+\b/g,"").trim()+" st-"+st;
 }
@@ -1838,6 +1872,34 @@ function enterDemo(){DEMO=true;KEY="bloom-demo";var now=new Date(),y=now.getFull
   T({type:"expense",method:"bank",via:"Online transfer",amt:620000,from:"a2",date:d(0,5),cat:"Utilities & bills",sub:"Electricity",note:"CEB bill"});
   S.groups=[{id:"g1",name:"Family",type:"Family",access:"partial",cur:"LKR",members:[{id:"m1",name:"Ridma",me:true,share:"overview",items:[]},{id:"m2",name:"Kasun"}],tasks:[],exps:[],settles:[]}];
   hideAuth();tab="ov";render();var b=$("syncst");if(b){b.className="offline";b.innerHTML='Demo · sample data only, nothing is saved or synced · <a href="./">Exit demo</a>'}}
+
+/* ===== v0.16 Midnight screens ===== */
+var TXQ="",TXK="";
+function profileCard(){if(!AUTH.user)return "";var p=AUTH.profile||{},nm=p.username||"You";
+  return '<div class="card x-prof"><div class="hdr-av" aria-hidden="true">'+esc(nm.charAt(0).toUpperCase())+'</div><div style="flex:1;min-width:0"><div style="font-size:17px;font-weight:800;color:var(--ink)">'+esc(nm)+'</div><div class="s" style="overflow:hidden;text-overflow:ellipsis">'+esc(AUTH.user.email||"")+'</div><div style="margin-top:6px"><span class="x-pill">'+esc(SYNCTXT[SYNC.state]||SYNCTXT.ok)+'</span></div></div></div>'}
+function acTotal(C){var c=S.base,q=C.T[c]||{liquid:0};var cashA=cashes(),bankA=banks();
+  return '<div class="card" style="border-radius:22px;padding:18px"><div class="x-lbl">Cash in bank &amp; hand</div><div class="x-big">'+fmt(q.liquid||0,c)+'</div>'+(cashA.length&&bankA.length?'<div class="x-act"><button data-q="withdraw">'+ico("down",16)+'Withdraw cash</button><button data-q="deposit">'+ico("up",16)+'Deposit cash</button></div>':'')+'</div>'}
+function alSummary(C){var c=S.base,q=C.T[c]||{assets:0,liab:0,net:0};
+  return '<div class="card" style="border-radius:22px;padding:18px"><div class="x-lbl">Net worth</div><div class="x-big">'+fmt(q.net||0,c)+'</div>'+((q.assets||q.liab)?'<div class="x-owe" aria-hidden="true"><div style="flex:'+(q.assets||0)+';background:var(--g)"></div><div style="flex:'+(q.liab||0)+';background:var(--r)"></div></div><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink)"><span><b>'+fmt(q.assets||0,c)+'</b> <span class="s">owned</span></span><span><b>'+fmt(q.liab||0,c)+'</b> <span class="s">owed</span></span></div>':'')+'</div>'}
+function txScreen(r){
+  var L=flows(r).list,all=L;
+  if(txf&&txf!=="personal"&&!G(txf))txf="";
+  if(txf==="personal")L=L.filter(function(t){return !(t.groups&&t.groups.length)});else if(txf)L=L.filter(function(t){return (t.groups||[]).indexOf(txf)>=0});
+  if(TXK==="in")L=L.filter(function(t){return dir(t)>0});else if(TXK==="out")L=L.filter(function(t){return dir(t)<0});else if(TXK==="tr")L=L.filter(function(t){return dir(t)===0||t.type==="transfer"});
+  var q=TXQ.trim().toLowerCase();if(q)L=L.filter(function(t){return ((t.note||"")+" "+(t.cat||"")+" "+(t.sub||"")+" "+kindOf(t)+" "+pathOf(t)+" "+(t.party||"")).toLowerCase().indexOf(q)>=0});
+  var c=S.base,inn=0,out=0;L.forEach(function(t){if(curOf(t)!==c)return;var d=dir(t);if(d>0)inn+=t.amt;else if(d<0)out+=t.amt+(t.int||0)});
+  var chip=function(k,l,a,attr){return '<button type="button" class="x-chip" '+attr+'="'+k+'" aria-pressed="'+a+'">'+esc(l)+'</button>'};
+  var h='<label class="x-search">'+ico("search",18)+'<input id="txq" type="search" placeholder="Search transactions" aria-label="Search transactions" value="'+esc(TXQ)+'"></label>';
+  h+='<div class="x-chips">'+chip("","All",!TXK&&!txf,"data-txk")+chip("in","Income",TXK==="in","data-txk")+chip("out","Expenses",TXK==="out","data-txk")+chip("tr","Transfers",TXK==="tr","data-txk");
+  if(S.groups.length)h+=chip("personal","Personal",txf==="personal","data-txg")+S.groups.map(function(g){return chip(g.id,g.name,txf===g.id,"data-txg")}).join("");
+  h+='</div><div class="x-two2"><div class="card"><div class="x-lbl">Money in</div><div style="font-size:20px;font-weight:800;color:var(--g)">+'+fmt(inn,c)+'</div></div><div class="card"><div class="x-lbl">Money out</div><div style="font-size:20px;font-weight:800;color:var(--ink)">−'+fmt(out,c)+'</div></div></div>';
+  if(!L.length)return h+'<div class="card"><div class="empty">'+(all.length?"No transactions match.":"No transactions in this period.")+'</div></div>';
+  var today=ds(new Date()),day=null,open=false;
+  L.forEach(function(t){if(t.date!==day){if(open)h+='</div>';day=t.date;h+='<div class="x-day">'+(day===today?"Today":nice(day))+'</div><div class="card" style="padding:4px 16px">';open=true}h+=txRow(t)});
+  return h+(open?'</div>':'')}
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset;
+  if(d.txk!=null){e.stopPropagation();TXK=d.txk;if(!d.txk)txf="";render()}else if(d.txg!=null){e.stopPropagation();txf=txf===d.txg?"":d.txg;render()}},true);
+document.addEventListener("input",function(e){if(e.target&&e.target.id==="txq"){TXQ=e.target.value;var pos=e.target.selectionStart;render();var n=$("txq");if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}}});
 
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
