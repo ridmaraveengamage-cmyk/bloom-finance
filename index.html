@@ -139,9 +139,27 @@ nav button{font-size:12px;padding:10px 2px;line-height:1.2}
   .aside li:before{content:"✓";color:#F0CF7E;font-weight:700;margin-right:10px}
   .auth>.acard{align-self:center;justify-self:center;margin:40px}
 }
+#splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg);transition:opacity .4s ease,visibility .4s}
+#splash.out{opacity:0;visibility:hidden}
+#splash .sp-in{display:flex;flex-direction:column;align-items:center}
+#splash .p{transform-box:fill-box;transform-origin:50% 100%;animation:spGrow .8s cubic-bezier(.2,.8,.2,1) both}
+#splash .p2{animation-delay:.15s}#splash .p3{animation-delay:.3s}
+#splash .b{stroke-dasharray:44;stroke-dashoffset:44;animation:spLine .6s ease-out .1s forwards}
+#splash .wm{opacity:0;animation:spFade .5s ease .45s forwards}
+.sp-dots{display:flex;gap:6px;margin-top:18px}.sp-dots i{width:7px;height:7px;border-radius:50%;background:var(--lgi);opacity:.3;animation:spDot 1s ease-in-out .6s infinite}
+.sp-dots i:nth-child(2){animation-delay:.75s}.sp-dots i:nth-child(3){animation-delay:.9s}
+@keyframes spGrow{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:1}}
+@keyframes spLine{to{stroke-dashoffset:0}}
+@keyframes spFade{to{opacity:1}}
+@keyframes spDot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-4px)}}
+@media (min-width:1024px){#splash{display:none}}
+@media (prefers-reduced-motion:reduce){#splash .p,#splash .b,#splash .wm,.sp-dots i{animation:none;opacity:1;stroke-dashoffset:0}}
+.navout{display:none}
+@media (min-width:1024px){nav .navout{display:block;margin-top:auto;color:var(--r);font-weight:700}}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="sp-in"><svg width="96" height="96" viewBox="0 0 64 64" focusable="false"><path class="lg-i p p1" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i p p2" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i p p3" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a b" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><div class="wm" style="font-size:30px;margin-top:14px"><b>bloom</b><span> finance</span></div><div class="sp-dots"><i></i><i></i><i></i></div></div></div>
 <div id="auth" class="auth" hidden><div class="aside" aria-hidden="true"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><h2>Your money,<br>clearly.</h2><p>Bank accounts, cards, spending, budgets, savings goals and shared family money, all in one calm place.</p><ul><li>See your net worth and cash flow at a glance</li><li>Budgets, goals and detailed reports</li><li>Share with family or friends, on your terms</li><li>Works on your phone, tablet and computer</li></ul></div><div class="acard">
   <div class="brand brandbar" role="img" aria-label="Bloom Finance"><svg width="50" height="50" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:34px"><b>bloom</b><span> finance</span></span></div><div class="s">Your money, clearly.</div>
   <div class="note" id="apv" hidden style="margin:14px 0 0">This is a preview. Logging in and signing up work once Bloom runs on its own website, because the preview can’t connect to outside servers.<br><button type="button" class="pri" data-aact="local" style="margin-top:10px">Continue on this device</button></div>
@@ -391,7 +409,7 @@ function chg(n,c){return n===0?"No change this period":(n>0?"▲ +":"▼ −")+f
 function render(){
   $("ml").textContent=label();$("pt").value=per;
   var tabs=[["ov","Overview"],["tx","Transactions"],["ac","Cash and Bank Accounts"],["al","Assets & Liabilities"],["an","Analysis"],["bu","Budgets & Goals"],["gr","Groups"],["dc","Documents"],["mo","More"]];
-  var hb=document.querySelector("header h1");$("nav").innerHTML='<div class="navbrand" aria-hidden="true">'+(hb?'<span class="brandbar">'+hb.innerHTML+'</span>':'')+'</div>'+tabs.map(function(t){return '<button data-t="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':"")+'>'+t[1]+'</button>'}).join("");
+  var hb=document.querySelector("header h1");$("nav").innerHTML='<div class="navbrand" aria-hidden="true">'+(hb?'<span class="brandbar">'+hb.innerHTML+'</span>':'')+'</div>'+tabs.map(function(t){return '<button data-t="'+t[0]+'"'+(tab===t[0]?' aria-current="page"':"")+'>'+t[1]+'</button>'}).join("")+(AUTH.user?'<button class="navout" data-aact="logout">Log out</button>':'');
   var r=range(),h="";
   if(tab==="ov"){
     var E=calc(r.E),B=calc(ds(new Date(r.s.getFullYear(),r.s.getMonth(),r.s.getDate()-1))),F=flows(r),c0=E.curs[0],e=E.T[c0],b=B.T[c0]||{liquid:0,assets:0,liab:0,net:0,bank:0,cash:0,card:0,loan:0};
@@ -441,7 +459,7 @@ function render(){
       return '<div style="margin-bottom:14px"><div class="row"><span>'+esc(k)+'<span class="s"> · spent '+fmt(sp)+'</span></span><input class="bin" type="number" min="0" step="any" data-b="'+esc(k)+'" value="'+(lim?unit(lim,S.base):"")+'" placeholder="Limit" aria-label="'+esc(k)+' budget"></div><div class="track"><div class="fill '+cl+'" style="width:'+p+'%"></div></div>'+(lim?'<div class="s">'+(sp>lim?"Over by "+fmt(sp-lim):fmt(lim-sp)+" left")+' · '+Math.round(sp/lim*100)+'% used</div>':"")+'</div>'}).join("")+'<div class="s">Budgets are monthly and count all spending in '+S.base+', including credit-card purchases. Loan interest counts toward Financial costs.</div></div>';
     h+=renderGoals();
   }else{
-    h+=accountCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
+    h+=accountCard()+logoutCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
     h+='<h2>Backup &amp; restore</h2><div class="card"><p class="s" style="margin-top:0">Your data lives only in this browser and can be lost if browser data is cleared. Copy a backup and keep it somewhere safe.</p><div class="btns" style="justify-content:flex-start;margin:0 0 10px;flex-wrap:wrap"><button class="pri" data-bk="show">Create backup</button><button data-bk="copy">Copy</button><button data-bk="restore">Restore from text</button></div><label for="bkt">Backup text</label><textarea id="bkt" rows="7" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px" placeholder="Press Create backup, or paste a backup here and press Restore."></textarea><div class="err" id="bke" role="alert"></div></div>';
     h+='<div class="card"><h3>Erase everything</h3><p class="s">Removes all accounts, cards, assets, liabilities, transactions, budgets, custom categories, groups, goals and document details from this browser.</p><button data-bk="erase" style="color:var(--r)">Erase all data</button></div>';
   }
@@ -1175,13 +1193,15 @@ async function boot(){
   if(q.get("error_description")){aerr(friendly(q.get("error_description")));history.replaceState(null,"",location.pathname);return}
   if(s.data&&s.data.session)afterSignIn(s.data.session.user);else aerr("");
 }
+function logoutCard(){return AUTH.user?'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>Log out</b><div class="s">Signed in as '+esc(AUTH.user.email||"")+'</div></div><button data-aact="logout" style="color:var(--r);font-weight:700">Log out</button></div>':''}
 function accountCard(){return installCard()+accountCard0()}
 function accountCard0(){
   if(AUTH.user){var p=AUTH.profile||{};return '<h2>Account</h2><div class="card"><div class="mini" style="margin-top:0">'+mini("Username",esc(p.username||"—"))+mini("Email",esc(AUTH.user.email||"—"))+mini("Mobile",esc(p.phone||"—"))+mini("Country",esc(p.country||"—"))+'</div>'+
-    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button><button data-aact="signout" style="color:var(--r)">Sign out</button></div><div class="s">Your data is kept on this device, separately for each account. Syncing to the cloud is the next step.</div></div>'}
+    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button><button data-aact="logout" style="color:var(--r)">Log out</button></div><div class="s">Your data is kept on this device, separately for each account. Syncing to the cloud is the next step.</div></div>'}
   return '<h2>Account</h2><div class="card"><p class="s" style="margin-top:0">You’re using Bloom on this device without an account.'+(AUTH.preview?' Signing in works when Bloom runs on its own website.':'')+'</p><button class="pri" data-aact="showlogin">Log in or sign up</button></div>'}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var D2=b.dataset;
-  if(D2.aact){e.stopPropagation();if(D2.aact==="showlogin"){try{localStorage.removeItem("bloom-auth-mode")}catch(x){}showAuth("login")}else if(D2.aact==="editprofile")showAuth("profile");else authAct(D2.aact)}
+  if(D2.aact){e.stopPropagation();if(D2.aact==="logout"){ask("Log out of Bloom on this device?",function(){authAct("signout")},"Log out")}
+  else if(D2.aact==="showlogin"){try{localStorage.removeItem("bloom-auth-mode")}catch(x){}showAuth("login")}else if(D2.aact==="editprofile")showAuth("profile");else authAct(D2.aact)}
   else if(D2.av){AUTH.view=D2.av;authRender()}
   else if(D2.oauth)oauth(D2.oauth);
   else if(D2.pw){var i=$(D2.pw),sh=i.type==="password";i.type=sh?"text":"password";b.textContent=sh?"Hide":"Show";b.setAttribute("aria-label",sh?"Hide password":"Show password")}
@@ -1431,7 +1451,10 @@ function installCard(){
 async function pwaInstall(){if(!PWA.prompt)return;PWA.prompt.prompt();var c=await PWA.prompt.userChoice.catch(function(){return{}});PWA.prompt=null;if(c&&c.outcome==="accepted"){PWA.installed=true;var b=$("ainst");if(b)b.hidden=true}render()}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.pwa==="install"){e.stopPropagation();pwaInstall()}},true);
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!isPreview()){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
-boot();
+var T0=Date.now();
+function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
+setTimeout(splashDone,7000);
+Promise.resolve(boot()).then(splashDone,splashDone);
 </script>
 </body>
 </html>
