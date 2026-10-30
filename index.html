@@ -15,7 +15,7 @@
 <title>Bloom Finance</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%231D6B4C%22/%3E%3Cg%20transform%3D%22translate%285%203%29%20scale%28.84%29%22%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20fill-opacity%3D%22.45%22%20d%3D%22M19%2052%20C12.5%2046.0%2012.5%2039.8%2019%2035%20C25.5%2039.8%2025.5%2046.0%2019%2052%20Z%22/%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20fill-opacity%3D%22.75%22%20d%3D%22M32%2052%20C25.5%2042.5%2025.5%2032.6%2032%2025%20C38.5%2032.6%2038.5%2042.5%2032%2052%20Z%22/%3E%3Cpath%20fill%3D%22%23F2F8F4%22%20d%3D%22M45%2052%20C38.5%2038.7%2038.5%2024.6%2045%2014%20C51.5%2024.6%2051.5%2038.7%2045%2052%20Z%22/%3E%3Cpath%20d%3D%22M11%2056%20L53%2056%22%20stroke%3D%22%23F0CF7E%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3C/g%3E%3C/svg%3E">
 <script src="supabase-config.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;700&family=Outfit:wght@300;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;700&family=Outfit:wght@300;400;600;700&family=Manrope:wght@400;600;700;800&family=Inter+Tight:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap">
 <style>
 :root{--bg:#f2f6f0;--card:#fff;--ink:#1c2b21;--mute:#5f7366;--line:#d8e3d9;--g:#2e7d4e;--r:#b3443a;--amb:#c58a1c;--track:#e4ece5;--hero:#1f4d34;--herofg:#f2f6f0;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -156,6 +156,66 @@ nav button{font-size:12px;padding:10px 2px;line-height:1.2}
 @media (prefers-reduced-motion:reduce){#splash .p,#splash .b,#splash .wm,.sp-dots i{animation:none;opacity:1;stroke-dashoffset:0}}
 .navout{display:none}
 @media (min-width:1024px){nav .navout{display:block;margin-top:auto;color:var(--r);font-weight:700}}
+/* ---------- App styles (Midnight, Paper, Soft bento, Wallet) × light / dark ---------- */
+body{font-family:var(--fb,"DM Sans"),system-ui,sans-serif}
+h1,h2,h3,.big,.tile b,.aside h2{font-family:var(--fh,"Bricolage Grotesque"),var(--fb,"DM Sans"),system-ui,sans-serif}
+.card,.gobtn,dialog{border-radius:var(--rad,12px)}
+.hero{border-radius:var(--radh,16px)}
+.stylebtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;padding:0;flex:none}
+.stygrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.styopt{border:2px solid var(--line);background:var(--card);border-radius:16px;padding:8px;text-align:left;cursor:pointer}
+.styopt[aria-pressed="true"]{border-color:var(--g)}
+.styprev{height:84px;border-radius:12px;padding:9px;box-sizing:border-box;display:flex;flex-direction:column;gap:6px}
+.styprev i{display:block;border-radius:7px}
+.modeseg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.modeseg button{height:64px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.modeseg button[aria-pressed="true"]{border-color:var(--g);color:var(--g)}
+#syncst.ok{color:var(--g);font-weight:700}#syncst.error,#syncst.offline{color:var(--amb);font-weight:700}
+@media (min-width:1024px){header .stylebtn{display:none}.desk-only{display:inline-flex!important}}
+.desk-only{display:none!important}
+
+/* Midnight */
+html[data-style="mid"]{--fb:"Manrope";--fh:"Manrope";--rad:18px;--radh:22px;--bg:#F3F6F5;--card:#fff;--ink:#0F1A16;--mute:#55665F;--line:#DCE5E1;--g:#0F8A5F;--r:#C2452A;--track:#EAF0ED;--hero:#fff;--herofg:#0F1A16}
+html[data-style="mid"][data-theme="dark"]{--bg:#0B100E;--card:#151C19;--ink:#EEF4F1;--mute:#93A79F;--line:#26312C;--g:#3DDC97;--r:#FF8A65;--track:#1E2824;--hero:#151C19;--herofg:#EEF4F1}
+html[data-style="mid"] .hero{border:1px solid var(--line)}
+html[data-style="mid"] .big{font-weight:800;letter-spacing:-.03em}
+@media (max-width:1023px){html[data-style="mid"] nav{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.14);overflow:hidden;padding-bottom:0}
+ html[data-style="mid"] .wrap{padding-bottom:120px}html[data-style="mid"] .fab{bottom:calc(86px + env(safe-area-inset-bottom,0px))}}
+
+/* Paper */
+html[data-style="pap"]{--fb:"Inter Tight";--fh:"Inter Tight";--rad:0px;--radh:0px;--bg:#fff;--card:#fff;--ink:#0E1110;--mute:#59625E;--line:#E5E8E6;--g:#1D6B4C;--r:#B23A24;--track:#F1F4F2;--hero:transparent;--herofg:#0E1110}
+html[data-style="pap"][data-theme="dark"]{--bg:#0F1211;--card:#0F1211;--ink:#F1F4F2;--mute:#9CA7A1;--line:#262C29;--g:#6FD3A0;--r:#FF8F7A;--track:#1A1F1D;--herofg:#F1F4F2}
+html[data-style="pap"] .card{border:0;border-top:1px solid var(--line);padding-left:0;padding-right:0;background:transparent}
+html[data-style="pap"] .hero{padding:10px 0 18px;border-bottom:1px solid var(--line)}
+html[data-style="pap"] .big{font-weight:600;letter-spacing:-.045em;font-size:clamp(40px,11vw,64px)}
+html[data-style="pap"] .tile{background:transparent;border:0;border-top:1px solid var(--line);border-radius:0;padding:14px 4px}
+html[data-style="pap"] .gobtn{border-radius:999px}
+html[data-style="pap"] .pri,html[data-style="pap"] button,html[data-style="pap"] input,html[data-style="pap"] select{border-radius:999px}
+html[data-style="pap"] .note{border-radius:0}
+
+/* Soft bento */
+html[data-style="ben"]{--fb:"Outfit";--fh:"Outfit";--rad:24px;--radh:26px;--bg:#EEF2F6;--card:#fff;--ink:#15201A;--mute:#4F5C55;--line:#E2E7EC;--g:#1D6B4C;--r:#B23A24;--track:#EEF2F6;--hero:#CDEFD9;--herofg:#0F2B1D}
+html[data-style="ben"][data-theme="dark"]{--bg:#0F1317;--card:#1A2026;--ink:#EEF2F5;--mute:#A1ADB6;--line:#2A3138;--g:#5FC283;--r:#FF8F7A;--track:#232A31;--hero:#173A2A;--herofg:#E3F8EC}
+html[data-style="ben"] .card,html[data-style="ben"] .gobtn{border-color:transparent}
+html[data-style="ben"] .tile{border:0;border-radius:24px}
+html[data-style="ben"] .t-cash{background:#CDEFD9;--tc:#0F5A3A}html[data-style="ben"] .t-inc{background:#FBEFC0;--tc:#6B5408}html[data-style="ben"] .t-exp{background:#FCDCCB;--tc:#8A3412}html[data-style="ben"] .t-ast{background:#D7E6FB;--tc:#1C4C9A}html[data-style="ben"] .t-lia{background:#E5DDFB;--tc:#4A3696}
+html[data-style="ben"][data-theme="dark"] .t-cash{background:#173A2A;--tc:#A9E4C3}html[data-style="ben"][data-theme="dark"] .t-inc{background:#3A3214;--tc:#E8D58C}html[data-style="ben"][data-theme="dark"] .t-exp{background:#43261A;--tc:#F2B79B}html[data-style="ben"][data-theme="dark"] .t-ast{background:#182B47;--tc:#A9C6F2}html[data-style="ben"][data-theme="dark"] .t-lia{background:#2A2147;--tc:#C3B5F2}
+@media (max-width:1023px){html[data-style="ben"] nav{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border:0;border-radius:32px;box-shadow:0 8px 24px rgba(0,0,0,.14);overflow:hidden;padding-bottom:0}
+ html[data-style="ben"] .wrap{padding-bottom:120px}html[data-style="ben"] .fab{bottom:calc(86px + env(safe-area-inset-bottom,0px))}}
+
+/* Wallet */
+html[data-style="wal"]{--fb:"Plus Jakarta Sans";--fh:"Plus Jakarta Sans";--rad:18px;--radh:24px;--bg:#F5F7F6;--card:#fff;--ink:#111A16;--mute:#55615B;--line:#E3E8E5;--g:#1D6B4C;--r:#B23A24;--track:#F1F3F2;--hero:#12382A;--herofg:#fff}
+html[data-style="wal"][data-theme="dark"]{--bg:#0E1311;--card:#171E1B;--ink:#EEF3F0;--mute:#9AA7A0;--line:#26302B;--g:#4CC38A;--r:#FF8F7A;--track:#1F2824;--hero:#1B4A37;--herofg:#fff}
+html[data-style="wal"] .hero{box-shadow:0 -10px 0 -2px #B8892E,0 -20px 0 -6px #2B3A4A;margin-top:22px}
+html[data-style="wal"] .big{font-weight:800}
+
+/* hero text on light-coloured heroes */
+html[data-style="mid"] .hero .rows,html[data-style="pap"] .hero .rows,html[data-style="ben"] .hero .rows{border-top-color:var(--line)}
+html[data-style="mid"] .hero .rows div,html[data-style="pap"] .hero .rows div,html[data-style="ben"] .hero .rows div{border-bottom-color:var(--line)}
+html[data-style="mid"] .hpill,html[data-style="pap"] .hpill,html[data-style="ben"] .hpill{background:var(--track);color:var(--g)}
+html[data-style="mid"] .duo>div+div,html[data-style="pap"] .duo>div+div,html[data-style="ben"] .duo>div+div{border-color:var(--line)}
+html[data-theme="dark"] .pri{color:#0b1a12}
+
 </style>
 </head>
 <body>
@@ -167,10 +227,10 @@ nav button{font-size:12px;padding:10px 2px;line-height:1.2}
   <div id="aform"></div><div class="err" id="aer" role="alert" aria-live="polite"></div><button type="button" class="link wide mobile-only" id="ainst" data-pwa="install" hidden>Install Bloom as an app</button>
 </div></div>
 <div class="wrap">
-  <header><h1 class="brandbar" aria-label="Bloom Finance"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:25px" aria-hidden="true"><b>bloom</b><span> finance</span></span></h1></header>
+  <header><h1 class="brandbar" aria-label="Bloom Finance"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="lg-i" fill-opacity=".38" d="M19 52 C12.5 46.0 12.5 39.8 19 35 C25.5 39.8 25.5 46.0 19 52 Z"></path><path class="lg-i" fill-opacity=".68" d="M32 52 C25.5 42.5 25.5 32.6 32 25 C38.5 32.6 38.5 42.5 32 52 Z"></path><path class="lg-i" d="M45 52 C38.5 38.7 38.5 24.6 45 14 C51.5 24.6 51.5 38.7 45 52 Z"></path><path class="lg-a" d="M11 56 L53 56" stroke-width="2.4" stroke-linecap="round"></path></svg><span class="wm" style="font-size:25px" aria-hidden="true"><b>bloom</b><span> finance</span></span></h1><button type="button" class="stylebtn" data-sty="open" aria-label="App style"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.9-.6-1.3-.6-2.1 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.9-4-8.9-9-8.9zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01"></path></svg></button></header>
   <div class="pbar"><select id="pt" aria-label="Time period"><option value="d">Daily</option><option value="w">Weekly</option><option value="m" selected>Monthly</option><option value="q">Quarterly</option><option value="h">6 months</option><option value="y">Annual</option></select>
-    <button id="pm" aria-label="Previous period">‹</button><strong id="ml"></strong><button id="nm" aria-label="Next period">›</button><button id="td">Today</button></div>
-  <div class="note">Version 0.13 · Your data is saved in this browser, separately for each account. Cloud sync is coming next, so keep a backup (More tab).</div>
+    <button id="pm" aria-label="Previous period">‹</button><strong id="ml"></strong><button id="nm" aria-label="Next period">›</button><button id="td">Today</button><button type="button" class="desk-only" data-sty="open" style="align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.9-.6-1.3-.6-2.1 0-.9.7-1.5 1.6-1.5H17a4 4 0 0 0 4-4c0-4.9-4-8.9-9-8.9zM7.5 12.5h.01M9.5 8h.01M14.5 8h.01"></path></svg>Style</button></div>
+  <div class="note">Version 0.14 · <span id="syncst">Not signed in · data is saved on this device only</span></div>
   <main id="main"></main>
 </div>
 <button class="fab pri" id="fab">+ Transaction</button>
@@ -232,6 +292,7 @@ nav button{font-size:12px;padding:10px 2px;line-height:1.2}
   <div class="btns"><button type="button" id="lc">Cancel</button><button type="button" class="pri" id="ls">Save</button></div>
 </form></dialog>
 
+<dialog id="dsty" aria-labelledby="dstyt"><h3 id="dstyt">App style</h3><p class="s" style="margin:4px 0 0">Changes how Bloom looks. Your data stays the same.</p><div id="dstyg" class="stygrid"></div><p class="s" style="margin:0">Light or dark mode is in More › Settings › Appearance.</p><div class="btns"><button type="button" class="pri" data-sty="close">Done</button></div></dialog>
 <dialog id="dc" aria-labelledby="cfm"><p id="cfm" style="margin:0 0 6px;white-space:pre-line;line-height:1.5"></p>
   <div class="btns"><button type="button" id="cfn">Cancel</button><button type="button" class="pri" id="cfy">Confirm</button></div></dialog>
 <dialog id="dr" style="width:min(640px,96vw)"><h3 id="drt" style="margin-bottom:8px"></h3><div id="drb" style="max-height:65vh;overflow:auto"></div><div class="btns" id="drf" style="flex-wrap:wrap"></div></dialog>
@@ -256,9 +317,15 @@ function tOut(t){return t.type==="transfer"&&/_out$/.test(t.tsub||"")}function t
 var txf="";
 var S={accounts:[],cards:[],assets:[],liabs:[],tx:[],budgets:{},base:"LKR",custom:{expense:{},income:{}},groups:[],goals:[],docs:[]},tab="ov",per="m",anc=new Date(),editId=null,editAc=null,editAL=null,alKind="asset";
 var $=function(i){return document.getElementById(i)};
-var pend=null;
-function ask(msg,yes,label){pend=yes;$("cfm").textContent=msg;$("cfy").textContent=label||"Confirm";$("cfn").style.display="";$("dc").showModal()}
-function tell(msg){pend=null;$("cfm").textContent=msg;$("cfy").textContent="OK";$("cfn").style.display="none";$("dc").showModal()}
+var UI={style:"wal",mode:"auto"};try{Object.assign(UI,JSON.parse(localStorage.getItem("bloom-ui")||"{}"))}catch(e){}
+var MQ=window.matchMedia?matchMedia("(prefers-color-scheme: dark)"):null;
+function applyUI(){var dk=UI.mode==="dark"||(UI.mode==="auto"&&!!(MQ&&MQ.matches));var r=document.documentElement;r.setAttribute("data-style",UI.style);r.setAttribute("data-theme",dk?"dark":"light");var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",(getComputedStyle(r).getPropertyValue("--bg")||"").trim()||"#1D6B4C")}
+function setUI(k,v){UI[k]=v;try{localStorage.setItem("bloom-ui",JSON.stringify(UI))}catch(e){}applyUI();if(typeof render==="function"&&!$("auth").hidden===false)render()}
+if(MQ){var mqf=function(){if(UI.mode==="auto")applyUI()};if(MQ.addEventListener)MQ.addEventListener("change",mqf);else if(MQ.addListener)MQ.addListener(mqf)}
+applyUI();
+var pend=null,pendNo=null;
+function ask(msg,yes,label,no){pend=yes;pendNo=no||null;$("cfm").textContent=msg;$("cfy").textContent=label||"Confirm";$("cfn").style.display="";$("dc").showModal()}
+function tell(msg){pend=null;pendNo=null;$("cfm").textContent=msg;$("cfy").textContent="OK";$("cfn").style.display="none";$("dc").showModal()}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function uid(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function dec(c){return c==="JPY"?0:(["KWD","OMR","BHD"].indexOf(c)>=0?3:2)}
@@ -299,7 +366,7 @@ function monthRange(d){return{S:ds(new Date(d.getFullYear(),d.getMonth(),1)),E:d
 
 /* ---------- Storage ---------- */
 function load(){try{var r=localStorage.getItem(KEY);if(r){S=Object.assign(S,JSON.parse(r));migrate()}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof queuePush==="function"&&AUTH.user)queuePush();render()}
 function migrate(){
   if(!S.base)S.base="LKR";S.assets=S.assets||[];S.liabs=S.liabs||[];S.groups=S.groups||[];S.goals=S.goals||[];S.docs=S.docs||[];S.groups.forEach(function(g){g.access=g.access||"partial";g.members.forEach(function(m){if(m.me&&!m.share)m.share=g.access==="all"?"full":"none";if(m.me&&!m.items)m.items=[]})});S.custom=S.custom||{};S.custom.expense=S.custom.expense||{};S.custom.income=S.custom.income||{};
   var M={"Bills":"Utilities & bills","Fun":"Entertainment & leisure","Business":"Business & freelance","Gift":"Gifts & support"};
@@ -459,7 +526,7 @@ function render(){
       return '<div style="margin-bottom:14px"><div class="row"><span>'+esc(k)+'<span class="s"> · spent '+fmt(sp)+'</span></span><input class="bin" type="number" min="0" step="any" data-b="'+esc(k)+'" value="'+(lim?unit(lim,S.base):"")+'" placeholder="Limit" aria-label="'+esc(k)+' budget"></div><div class="track"><div class="fill '+cl+'" style="width:'+p+'%"></div></div>'+(lim?'<div class="s">'+(sp>lim?"Over by "+fmt(sp-lim):fmt(lim-sp)+" left")+' · '+Math.round(sp/lim*100)+'% used</div>':"")+'</div>'}).join("")+'<div class="s">Budgets are monthly and count all spending in '+S.base+', including credit-card purchases. Loan interest counts toward Financial costs.</div></div>';
     h+=renderGoals();
   }else{
-    h+=accountCard()+logoutCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
+    h+=accountCard()+logoutCard()+appearanceCard()+'<h2>Settings</h2><div class="card"><label for="bc" style="margin-top:0">Main currency</label><select id="bc">'+curOpts(S.base)+'</select><div class="s" style="margin-top:6px">Shown first on the overview, and used for budgets and spending by category. Changing it clears your budgets.</div></div>';
     h+='<h2>Backup &amp; restore</h2><div class="card"><p class="s" style="margin-top:0">Your data lives only in this browser and can be lost if browser data is cleared. Copy a backup and keep it somewhere safe.</p><div class="btns" style="justify-content:flex-start;margin:0 0 10px;flex-wrap:wrap"><button class="pri" data-bk="show">Create backup</button><button data-bk="copy">Copy</button><button data-bk="restore">Restore from text</button></div><label for="bkt">Backup text</label><textarea id="bkt" rows="7" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px" placeholder="Press Create backup, or paste a backup here and press Restore."></textarea><div class="err" id="bke" role="alert"></div></div>';
     h+='<div class="card"><h3>Erase everything</h3><p class="s">Removes all accounts, cards, assets, liabilities, transactions, budgets, custom categories, groups, goals and document details from this browser.</p><button data-bk="erase" style="color:var(--r)">Erase all data</button></div>';
   }
@@ -1132,7 +1199,7 @@ function previewBlock(){aerr("Signing in isn’t possible in this preview, becau
 async function authAct(a){
   if(AUTH.busy)return;
   if(a==="local"){try{localStorage.setItem("bloom-auth-mode","local")}catch(e){}enterApp(null);return}
-  if(a==="signout"){if(AUTH.client)try{await AUTH.client.auth.signOut()}catch(e){}AUTH.user=null;AUTH.profile=null;try{localStorage.removeItem("bloom-auth-mode")}catch(e){}S=blank();S.base="LKR";KEY="bloom-v1";showAuth("login");return}
+  if(a==="signout"){if(AUTH.user&&syncMeta().dirty&&navigator.onLine){clearTimeout(SYNC.timer);try{await pushNow()}catch(e){}}clearTimeout(SYNC.timer);clearTimeout(SYNC.retry);syncBadge("local");if(AUTH.client)try{await AUTH.client.auth.signOut()}catch(e){}AUTH.user=null;AUTH.profile=null;try{localStorage.removeItem("bloom-auth-mode")}catch(e){}S=blank();S.base="LKR";KEY="bloom-v1";showAuth("login");return}
   if(a==="login"){var em=$("ae1").value.trim().toLowerCase(),pw=$("ap1").value;
     if(!okEmail(em))return aerr("Enter a valid email address.");if(!pw)return aerr("Enter your password.");
     if(AUTH.preview)return previewBlock();
@@ -1174,9 +1241,7 @@ async function afterSignIn(user){
 function enterApp(user){
   KEY=user?"bloom-v1-u-"+user.id:"bloom-v1";
   S=blank();S.base="LKR";load();hideAuth();tab="ov";render();
-  if(user){var mine=false;try{mine=!!localStorage.getItem(KEY)}catch(e){}
-    var dev=null;try{dev=localStorage.getItem("bloom-v1")}catch(e){}
-    if(!mine&&dev){ask("This device has Bloom data from before you signed in. Move it into your account on this device?",function(){try{localStorage.setItem(KEY,dev)}catch(e){}S=blank();load();render()},"Move it")}}
+  if(user)syncStart();else syncBadge("local");
 }
 async function boot(){
   AUTH.preview=isPreview();
@@ -1427,7 +1492,7 @@ document.addEventListener("change",function(e){
   else if(el.id==="rpf"||el.id==="rpt"){$("rpc").checked=true}
   else if(el.id==="bc"){if(el.value===S.base)return;var nb=el.value,doIt=function(){S.budgets={};S.base=nb;save()};if(Object.keys(S.budgets).length){el.value=S.base;ask("Changing the main currency to "+nb+" clears your budgets.",doIt,"Change currency")}else doIt()}
 });
-$("cfy").onclick=function(){var f=pend;pend=null;$("dc").close();if(f)f()};$("cfn").onclick=function(){pend=null;$("dc").close()};
+$("cfy").onclick=function(){var f=pend;pend=null;pendNo=null;$("dc").close();if(f)f()};$("cfn").onclick=function(){var f=pendNo;pend=null;pendNo=null;$("dc").close();if(f)f()};
 $("fab").onclick=function(){openTx()};$("cx").onclick=function(){$("dt").close()};$("sv").onclick=saveTx;
 $("ty").onchange=formSync;$("pw").onchange=frSync;$("tsb").onchange=frSync;$("tgp").onchange=function(){tagSync([])};$("tgg").onchange=function(){tagSync([])};$("ct").onchange=function(){subSync();if($("ct").value==="__new")$("nc").focus()};$("sb").onchange=function(){show("nsb",$("sb").value==="__new");if($("sb").value==="__new")$("ns").focus()};$("ncs").onclick=addCat;$("nss").onclick=addSub;$("fr").onchange=curSync;$("to").onchange=curSync;
 $("ak").onchange=function(){if($("ak").value==="card"&&!editAc)$("acu").value=S.base;acSync()};$("cex").oninput=function(){var v=$("cex").value.replace(/[^0-9]/g,"").slice(0,4);$("cex").value=v.length>2?v.slice(0,2)+"/"+v.slice(2):v};$("ccn").oninput=function(){$("ccn").value=$("ccn").value.replace(/[^0-9]/g,"")};$("aco").onchange=function(){var c=CTRY[$("aco").value];if(c&&!$("acu").disabled)$("acu").value=c};
@@ -1451,6 +1516,70 @@ function installCard(){
 async function pwaInstall(){if(!PWA.prompt)return;PWA.prompt.prompt();var c=await PWA.prompt.userChoice.catch(function(){return{}});PWA.prompt=null;if(c&&c.outcome==="accepted"){PWA.installed=true;var b=$("ainst");if(b)b.hidden=true}render()}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.pwa==="install"){e.stopPropagation();pwaInstall()}},true);
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!isPreview()){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+/* ---------- App style (Midnight, Paper, Soft bento, Wallet) and light/dark mode ----------
+   Saved per device. Style is chosen from the Overview; mode from More › Settings › Appearance. */
+var STYLES={mid:"Midnight",pap:"Paper",ben:"Soft bento",wal:"Wallet"};
+var STYPREV={mid:["#0B100E","#151C19","#3DDC97","#26312C"],pap:["#FFFFFF","#FFFFFF","#1D6B4C","#E5E8E6"],ben:["#EEF2F6","#CDEFD9","#FBEFC0","#FCDCCB"],wal:["#F5F7F6","#12382A","#1D6B4C","#E3E8E5"]};
+function stylePicker(){
+  $("dstyg").innerHTML=Object.keys(STYLES).map(function(k){var c=STYPREV[k];
+    return '<button type="button" class="styopt" data-sty="'+k+'" aria-pressed="'+(UI.style===k)+'"><span class="styprev" style="background:'+c[0]+';border:1px solid '+c[3]+'"><i style="height:30px;background:'+c[1]+';border:1px solid '+c[3]+'"></i><span style="display:flex;gap:6px;flex:1"><i style="flex:1;background:'+(k==="ben"?c[2]:c[1])+';border:1px solid '+c[3]+'"></i><i style="flex:1;background:'+(k==="ben"?c[3]:c[1])+';border:1px solid '+c[3]+'"></i></span><i style="height:6px;width:40%;background:'+c[2]+'"></i></span><span style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-weight:600">'+STYLES[k]+(UI.style===k?' <span aria-hidden="true">✓</span>':'')+'</span></button>'}).join("");
+  if(!$("dsty").open)$("dsty").showModal()}
+function appearanceCard(){
+  var mk=function(v,l,i){return '<button type="button" data-mode="'+v+'" aria-pressed="'+(UI.mode===v)+'"><span aria-hidden="true">'+i+'</span>'+l+'</button>'};
+  return '<h2>Appearance</h2><div class="card"><div style="font-weight:600">Mode</div><div class="modeseg">'+mk("light","Light","☀")+mk("dark","Dark","☾")+mk("auto","Match device","◐")+'</div><div class="s" style="margin-top:8px">Applies to every app style. “Match device” follows your phone or computer’s setting.</div>'+
+   '<div class="item" style="margin-top:10px"><div class="m"><div>App style</div><div class="s">'+STYLES[UI.style]+' · you can also change it from the Overview</div></div><button type="button" data-sty="open">Change</button></div></div>'}
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset;
+  if(d.sty){e.stopPropagation();if(d.sty==="open")stylePicker();else if(d.sty==="close")$("dsty").close();else{setUI("style",d.sty);stylePicker()}}
+  else if(d.mode){e.stopPropagation();setUI("mode",d.mode)}},true);
+
+/* ---------- Cloud sync ----------
+   Each account's Bloom data is one row in Supabase (user_app_state), readable and writable only by
+   that signed-in person (Row Level Security). Every change saves on this device first (works offline),
+   then syncs. A version number prevents one device from silently overwriting another's changes. */
+var SYNC={timer:null,busy:false,again:false,retry:null};
+var SYNCTXT={ok:"✓ Synced to your account",saving:"Saving to your account…",offline:"Offline · changes will sync when you’re back online",error:"Couldn’t sync just now · will retry",local:"Not signed in · data is saved on this device only"};
+function syncMeta(){try{return JSON.parse(localStorage.getItem(KEY+"-sync")||"{}")}catch(e){return{}}}
+function setSyncMeta(m){try{localStorage.setItem(KEY+"-sync",JSON.stringify(m))}catch(e){}}
+function syncBadge(st){SYNC.state=st;var b=$("syncst");if(b){b.textContent=SYNCTXT[st]||"";b.className=st}}
+function hasData(x){return !!(x&&((x.accounts||[]).length||(x.cards||[]).length||(x.tx||[]).length||(x.assets||[]).length||(x.liabs||[]).length||(x.goals||[]).length||(x.groups||[]).length||(x.docs||[]).length))}
+function syncReady(){return !!(AUTH&&AUTH.client&&AUTH.user)}
+function adoptRemote(remote){S=blank();S.base="LKR";Object.assign(S,remote.data||{});migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}setSyncMeta({version:remote.version,dirty:false});render();syncBadge("ok")}
+async function syncStart(){
+  if(!syncReady())return;
+  if(!navigator.onLine){syncBadge("offline");return}
+  var r=await AUTH.client.from("user_app_state").select("data,version,updated_at").eq("user_id",AUTH.user.id).maybeSingle().then(null,function(e){return{error:e}});
+  if(r.error){syncBadge(navigator.onLine?"error":"offline");clearTimeout(SYNC.retry);SYNC.retry=setTimeout(syncStart,20000);return}
+  var remote=r.data,meta=syncMeta(),local=hasData(S);
+  if(!remote){
+    if(local){await pushNow(0);return}
+    var dev=null;try{dev=localStorage.getItem("bloom-v1")}catch(e){}
+    var devData=null;try{devData=dev&&JSON.parse(dev)}catch(e){}
+    if(hasData(devData)){ask("This device has Bloom data from before you signed in. Move it into your account?",function(){S=blank();S.base="LKR";Object.assign(S,devData);migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render();pushNow(0)},"Move it",function(){syncBadge("ok")});return}
+    syncBadge("ok");return}
+  if(meta.version===remote.version){if(meta.dirty)await pushNow(remote.version);else syncBadge("ok");return}
+  if(local&&(meta.dirty||!meta.version)){
+    ask(meta.version?"Your account was changed on another device while this device also had unsynced changes.\nUse the copy from your account? Choose Cancel to keep this device’s copy and save it to your account.":"Your account already has Bloom data saved.\nLoad it on this device? Choose Cancel to keep this device’s data and save it to your account instead.",
+      function(){adoptRemote(remote)},"Use account copy",function(){pushNow(remote.version)});return}
+  adoptRemote(remote)}
+async function pushNow(base){
+  if(!syncReady())return;
+  if(!navigator.onLine){syncBadge("offline");return}
+  if(SYNC.busy){SYNC.again=true;return}
+  SYNC.busy=true;syncBadge("saving");
+  var meta=syncMeta(),v=base!=null?base:(meta.version||0),data=JSON.parse(JSON.stringify(S)),dev=String(navigator.userAgent||"").slice(0,80),q;
+  if(!v)q=AUTH.client.from("user_app_state").insert({user_id:AUTH.user.id,data:data,version:1,device:dev}).select("version").maybeSingle();
+  else q=AUTH.client.from("user_app_state").update({data:data,version:v+1,device:dev}).eq("user_id",AUTH.user.id).eq("version",v).select("version").maybeSingle();
+  var r=await q.then(null,function(e){return{error:e}});
+  SYNC.busy=false;
+  if(r.error){if(/duplicate|23505|unique/i.test(String((r.error.message||"")+" "+(r.error.code||"")))){syncStart();return}
+    syncBadge(navigator.onLine?"error":"offline");clearTimeout(SYNC.retry);SYNC.retry=setTimeout(function(){pushNow()},20000);return}
+  if(!r.data){syncStart();return}
+  setSyncMeta({version:r.data.version,dirty:SYNC.again});syncBadge("ok");
+  if(SYNC.again){SYNC.again=false;queuePush()}}
+function queuePush(){if(!syncReady())return;var m=syncMeta();m.dirty=true;setSyncMeta(m);clearTimeout(SYNC.timer);syncBadge(navigator.onLine?"saving":"offline");SYNC.timer=setTimeout(function(){pushNow()},1200)}
+window.addEventListener("online",function(){if(syncReady()){var m=syncMeta();if(m.dirty)pushNow();else syncStart()}});
+window.addEventListener("offline",function(){if(syncReady())syncBadge("offline")});
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&syncReady()&&!syncMeta().dirty)syncStart()});
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
 setTimeout(splashDone,7000);
