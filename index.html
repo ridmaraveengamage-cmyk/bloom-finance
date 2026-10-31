@@ -429,6 +429,21 @@ main .note{background:var(--card);border:1px solid var(--line);border-radius:14p
 .fill.w{background:var(--warn)}.fill.o{background:var(--r)}
 .trend .col span:first-child{background:var(--g)!important}.trend .col span:last-child{background:var(--r)!important}
 .legend i{border-radius:3px}
+/* ===== v0.19 Add transaction controls ===== */
+#dt .chip-sel{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none;margin:0;padding:0;border:0}
+.tx-tabs{display:flex;gap:2px;padding:3px;border-radius:14px;background:var(--track);overflow:hidden;margin:4px 0 6px}
+.tx-tabs button{flex:1 1 auto;min-width:0;min-height:38px;border:0;background:transparent;color:var(--mute);font-weight:600;font-size:13px;padding:0 6px;border-radius:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:400px){.tx-tabs button{font-size:12px;padding:0 3px}}
+.tx-tabs button[aria-checked="true"]{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.tx-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.tx-chips button{min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:13px;line-height:1.2;max-width:100%;overflow-wrap:anywhere;text-align:left}
+.tx-chips button[aria-checked="true"]{border-color:var(--g);background:var(--chip);color:var(--g)}
+.tx-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:6px 0}
+.tx-cats button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px 4px;font-size:11px;font-weight:600;color:var(--ink);min-height:0;text-align:center;overflow-wrap:anywhere;line-height:1.2}
+.tx-cats button .ico{color:var(--mute)}
+.tx-cats button[aria-checked="true"]{border-color:var(--g);background:var(--chip);color:var(--g)}
+.tx-cats button[aria-checked="true"] .ico{color:var(--g)}
+@media (min-width:600px){.tx-cats{grid-template-columns:repeat(6,minmax(0,1fr))}}
 /* ===== v0.18 fixes: start card spacing, mode buttons, long values in account boxes ===== */
 .x-start{margin-bottom:14px}
 .x-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
@@ -1953,6 +1968,22 @@ function addBudgetCat(){var i=$("bnc"),er=$("bnce");if(!i)return;var n=i.value.t
   S.custom=S.custom||{};S.custom.expense=S.custom.expense||{};S.custom.expense[n]=[];save();tell("“"+n+"” added. Set its monthly budget below, and choose it when you record an expense.")}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.bnc){e.stopPropagation();addBudgetCat()}},true);
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target&&e.target.id==="bnc"){e.preventDefault();addBudgetCat()}});
+/* ===== v0.19 Add transaction: type tabs, "paid with" chips, category grid with icons, subcategory chips =====
+   The original fields stay underneath (hidden) and keep all the rules; each tap sets that field. */
+var TXCH=[["ty","tx-tabs","Transaction type"],["pw","tx-chips","Paid with"],["ct","tx-cats","Category"],["sb","tx-chips","Subcategory"]];
+var TYL={expense:"Expense",income:"Income",transfer:"Transfer",repay:"Card repay",loanpay:"Loan"};
+var INCICO={"Employment":"briefcase","Business":"bag","Business income":"bag","Investments":"chart","Investment income":"chart","Rental income":"home","Gifts":"gift","Gifts received":"gift","Other income":"dot"};
+function txChips(){TXCH.forEach(function(x){var s=$(x[0]);if(!s)return;
+  if(!s.classList.contains("chip-sel")){s.classList.add("chip-sel");s.tabIndex=-1;s.setAttribute("aria-hidden","true");if(x[0]==="ty"){var lb=document.querySelector('label[for="ty"]');if(lb)lb.classList.add("vh")}}
+  var box=$(x[0]+"-ch");if(!box){box=document.createElement("div");box.id=x[0]+"-ch";box.className=x[1];box.setAttribute("role","radiogroup");box.setAttribute("aria-label",x[2]);s.parentNode.insertBefore(box,s.nextSibling)}
+  box.innerHTML=[].map.call(s.options,function(o){var v=o.value,t=o.text,on=v===s.value;if(x[0]==="ty")t=TYL[v]||t;if(v==="__new")t="+ New";
+    var ic=x[0]==="ct"?ico(v==="__new"?"plus":(CATICO[v]||INCICO[v]||"dot"),20):"";
+    return '<button type="button" role="radio" aria-checked="'+on+'" data-chs="'+x[0]+'" data-v="'+esc(v)+'">'+ic+'<span>'+esc(t)+'</span></button>'}).join("");
+  box.hidden=!s.options.length||s.style.display==="none"})}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button[data-chs]");if(!b)return;e.preventDefault();var s=$(b.dataset.chs);if(!s)return;s.value=b.dataset.v;s.dispatchEvent(new Event("change",{bubbles:true}));txChips();if(b.dataset.v==="__new"){var n=$(b.dataset.chs==="ct"?"nc":"ns");if(n)n.focus()}});
+document.addEventListener("change",function(e){if(e.target&&e.target.closest&&e.target.closest("#dt"))setTimeout(txChips,0)});
+document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#dt")&&!e.target.closest("button[data-chs]"))setTimeout(txChips,0)});
+var _openTx=openTx;openTx=function(){var r=_openTx.apply(this,arguments);txChips();return r};
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
 setTimeout(splashDone,7000);
