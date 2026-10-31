@@ -1170,13 +1170,13 @@ function isStmt(d){return d.type==="bank"||d.type==="card"}
 
 function renderDocs(){
   var h='<h2>Documents</h2><button class="x-drop" data-g="dnew">'+ico("upload",26)+'<b>Upload a document</b><span class="s">PDF, photo, CSV or text · statements can be checked against what you’ve recorded</span></button>';
-  if(CAP.ready&&!CAP.assets)h+='<div class="note">Bloom keeps each document’s details: title, type, date and account. Saving the file itself is coming soon.</div>';
+  if(CAP.ready&&!CAP.assets)h+='<div class="note">Log in to store the files themselves securely in your account. Without an account, Bloom keeps each document’s details only.</div>';
   if(CAP.ready&&!CAP.sample)h+='<div class="note">Automatic statement reading is coming soon. You can already keep and organise your documents here.</div>';
   var L=S.docs.filter(function(d){return !dfil||d.type===dfil}).sort(function(a,b){return b.at-a.at});
   if(S.docs.length)h+='<div class="row" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+[["","All"]].concat(Object.keys(DTYPES).map(function(k){return [k,DTYPES[k]]})).map(function(x){var n=x[0]?S.docs.filter(function(d){return d.type===x[0]}).length:S.docs.length;return '<button data-g="dfil" data-id="'+x[0]+'"'+(dfil===x[0]?' class="pri" aria-pressed="true"':' aria-pressed="false"')+'>'+x[1]+' ('+n+')</button>'}).join("")+'</div>';
   if(!S.docs.length)return h+'<div class="card"><h3>No documents yet</h3><p class="s">Upload a PDF, photo, CSV or text file. For bank and card statements, Bloom will offer to read and check them.</p><button class="pri" data-g="dnew">Upload your first document</button></div>';
   h+='<div class="card">'+(L.length?L.map(function(d){var lk=d.acct&&find(d.acct),st=d.recon?{matched:["up","Matches Bloom"],updated:["up","Bloom updated"],reviewed:["","Reviewed"],ignored:["dn","Differences ignored"],pending:["dn","Needs a decision"]}[d.recon.status]:null;
-    return '<div class="item"><div class="m"><div>'+(d.asset?'<a href="/_blob/'+esc(d.asset)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>':esc(d.title))+'</div><div class="s">'+DTYPES[d.type]+(d.docDate?' · '+nice(d.docDate):'')+(lk?' · '+esc(lk.name):'')+(d.size?' · '+kb(d.size):'')+(d.asset?'':' · details only')+(st?' · <span class="pill '+st[0]+'">'+st[1]+'</span>':'')+'</div></div>'+
+    return '<div class="item"><div class="m"><div>'+(d.asset?'<a href="'+(String(d.asset).indexOf("sb:")===0?"#":"/_blob/"+esc(d.asset))+'" data-dopen="'+esc(d.asset)+'" target="_blank" rel="noopener">'+esc(d.title)+'</a>':esc(d.title))+'</div><div class="s">'+DTYPES[d.type]+(d.docDate?' · '+nice(d.docDate):'')+(lk?' · '+esc(lk.name):'')+(d.size?' · '+kb(d.size):'')+(d.asset?'':' · details only')+(st?' · <span class="pill '+st[0]+'">'+st[1]+'</span>':'')+'</div></div>'+
       '<div class="row">'+(isStmt(d)?(d.stmt?'<button class="x" data-g="dview" data-id="'+d.id+'">Insights</button>':(CAP.sample&&d.asset?'<button class="x" data-g="dread" data-id="'+d.id+'">Read</button>':'')):'')+'<button class="x" data-g="dedit" data-id="'+d.id+'">Edit</button><button class="x" data-g="ddel" data-id="'+d.id+'" aria-label="Delete document">✕</button></div></div>'}).join(""):'<div class="empty">No documents of this type.</div>')+'</div>';
   return h;
 }
@@ -1253,7 +1253,7 @@ async function docRead(id,blob){
   var x=find(d.acct);if(!x){tell("The linked account or card no longer exists. Edit the document and choose another.");return}
   showProg("Reading “"+d.title+"”…","Getting the text from the file.");
   try{
-    if(!blob){var rs=await fetch("/_blob/"+d.asset);if(!rs.ok)throw{code:"missing_file"};blob=await rs.blob()}
+    if(!blob){blob=await docBlob(d.asset)}
     var fc=await fileContent(blob,d.file);
     if(!fc.text&&!fc.images.length)throw{code:"empty_file"};
     if(fc.images.length&&!(CAP.slim&&CAP.slim.images))throw{code:"images_unavailable"};
@@ -1992,30 +1992,31 @@ var _openTx=openTx;openTx=function(){var r=_openTx.apply(this,arguments);txChips
    Joining happens only through an invite link; the database checks membership on every read and write. */
 var GS={timer:null,busy:false};
 function myUid(){return AUTH.user&&AUTH.user.id}
-function gPack(g){var d=JSON.parse(JSON.stringify(g));delete d.cloud;delete d.cver;delete d.owner;delete d._sent;(d.members||[]).forEach(function(m){delete m.me});return d}
-function gUnpack(row){var g=row.data||{};g.cloud=row.id;g.cver=row.version;g.owner=row.owner;
+function gPack(g){var d=JSON.parse(JSON.stringify(g));delete d.cloud;delete d.cver;delete d.owner;delete d._sent;delete d._sentC;(d.members||[]).forEach(function(m){delete m.me});var u=myUid();if(u&&(g.cloud||(g.members||[]).some(function(m){return m.me&&m.uid===u}))){d.shares=d.shares||{};var sn=typeof gMySnap==="function"?gMySnap(g):null;if(sn)d.shares[u]=sn;else delete d.shares[u]}return d}
+function gUnpack(row){var raw=JSON.stringify(row.data||{}),g=row.data||{};g.cloud=row.id;g.cver=row.version;g.owner=row.owner;
   g.members=(g.members||[]).map(function(m){m.me=!!(m.uid&&m.uid===myUid());if(m.me){m.share=m.share||"none";m.items=m.items||[]}return m});
-  g.exps=g.exps||[];g.tasks=g.tasks||[];g.settles=g.settles||[];g.access=g.access||"partial";g._sent=JSON.stringify(gPack(g));return g}
+  g.exps=g.exps||[];g.tasks=g.tasks||[];g.settles=g.settles||[];g.access=g.access||"partial";g.shares=g.shares||{};g._sent=raw;g._sentC=gContent(g);return g}
 function gKeep(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof queuePush==="function"&&AUTH.user)queuePush()}
 async function gPull(){if(!syncReady()||!navigator.onLine)return;
   var r=await AUTH.client.from("bloom_groups").select("id,owner,data,version").then(null,function(e){return{error:e}});if(r.error||!r.data)return;
   var ids={},changed=false,clash=null;
   r.data.forEach(function(row){ids[row.id]=1;var i=-1;S.groups.forEach(function(g,k){if(g.cloud===row.id)i=k});
     if(i<0){var ng=gUnpack(row);if(G(ng.id))ng.id=ng.id+"-"+row.id.slice(0,6);S.groups.push(ng);changed=true}
-    else{var lg=S.groups[i];if(row.version>lg.cver){var dirty=JSON.stringify(gPack(lg))!==lg._sent,nl=gUnpack(row);nl.id=lg.id;S.groups[i]=nl;changed=true;if(dirty)clash=nl.name}}});
+    else{var lg=S.groups[i];if(row.version>lg.cver){var dirty=gContent(lg)!==(lg._sentC||lg._sent),mine=meM(lg),nl=gUnpack(row),nm=meM(nl);if(mine&&nm){nm.share=mine.share;nm.items=mine.items}nl.id=lg.id;S.groups[i]=nl;changed=true;if(dirty)clash=nl.name}}});
   var n=S.groups.length;S.groups=S.groups.filter(function(g){return !g.cloud||ids[g.cloud]});if(S.groups.length!==n){changed=true;if(openG&&!G(openG))openG=null}
   if(changed){gKeep();render()}
+  gQueue();
   if(clash)tell("Someone else in “"+clash+"” changed it at the same time, so the latest version is shown. Please check your last change.")}
 function gQueue(){clearTimeout(GS.timer);GS.timer=setTimeout(gPush,1200)}
 async function gPush(){if(!syncReady()||GS.busy)return;if(!navigator.onLine)return;GS.busy=true;var conflict=false;
   for(var i=0;i<S.groups.length;i++){var g=S.groups[i];if(!g.cloud)continue;var p=gPack(g),js=JSON.stringify(p);if(js===g._sent)continue;
     var r=await AUTH.client.from("bloom_groups").update({data:p,version:g.cver+1}).eq("id",g.cloud).eq("version",g.cver).select("version").maybeSingle().then(null,function(e){return{error:e}});
-    if(r.error)continue;if(!r.data){conflict=true;continue}g.cver=r.data.version;g._sent=js}
+    if(r.error)continue;if(!r.data){conflict=true;continue}g.cver=r.data.version;g._sent=js;g._sentC=gContent(g)}
   GS.busy=false;gKeep();if(conflict)gPull()}
 async function gEnsureCloud(g){if(g.cloud)return true;var me=g.members.filter(function(m){return m.me})[0];if(me)me.uid=myUid();var p=gPack(g);
   var r=await AUTH.client.rpc("create_bloom_group",{p_data:p}).then(null,function(e){return{error:e}});
   if(r.error||!r.data){tell("Couldn’t share this group just now. Please try again.");return false}
-  g.cloud=r.data;g.cver=1;g.owner=myUid();g._sent=JSON.stringify(p);gKeep();return true}
+  g.cloud=r.data;g.cver=1;g.owner=myUid();g._sent=JSON.stringify(p);g._sentC=gContent(g);gKeep();return true}
 async function gInvite(gid,mid){var g=G(gid);if(!g)return;
   if(!syncReady()){tell("Log in to invite people to this group.");return}
   if(!navigator.onLine){tell("You’re offline. Connect to the internet to create an invite link.");return}
@@ -2070,6 +2071,43 @@ var _gShowAuth=showAuth;showAuth=function(v){var r=_gShowAuth.apply(this,argumen
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&syncReady())gPull()});
 window.addEventListener("online",function(){if(syncReady()){gPush();gPull()}});
 setInterval(function(){if(syncReady()&&tab==="gr"&&document.visibilityState==="visible")gPull()},25000);
+/* ===== v0.21 Shared finances in groups + private document storage ===== */
+function curMonth(){var d=new Date(),s=new Date(d.getFullYear(),d.getMonth(),1),e=new Date(d.getFullYear(),d.getMonth()+1,0);return{s:s,e:e,S:ds(s),E:ds(e)}}
+function gMySnap(g){var lv=myLevel(g),m=meM(g);if(lv==="none")return null;var cm=curMonth();return{lvl:lv,m:cm.S.slice(0,7),T:contrib(lv,(m&&m.items)||[],cm)}}
+function gContent(x){var d=gPack(x),u=myUid();delete d.shares;(d.members||[]).forEach(function(m){if(m.uid&&m.uid===u){delete m.share;delete m.items}});return JSON.stringify(d)}
+/* groups overview: you + every joined member who shares */
+groupOverview=function(g,r){
+  var m=meM(g),lv=myLevel(g),T=JSON.parse(JSON.stringify(contrib(lv,(m&&m.items)||[],r))),gs=0,people=[],sh=g.shares||{};
+  people.push({name:(m&&m.name||"You")+" (you)",lvl:lv,T:contrib(lv,(m&&m.items)||[],r)});
+  g.members.forEach(function(x){if(x.me||!x.uid)return;var s=sh[x.uid];people.push({name:x.name,lvl:s?s.lvl:"none",T:s?s.T:{},m:s&&s.m});
+    if(s&&s.T)Object.keys(s.T).forEach(function(c){var v=s.T[c],q=T[c]=T[c]||{liquid:0,other:0,card:0,loan:0,inc:0,exp:0,assets:0,liab:0,net:0};["liquid","other","card","loan","inc","exp","assets","liab","net"].forEach(function(k){q[k]=(q[k]||0)+(v[k]||0)})})});
+  g.exps.forEach(function(e){if(e.date>=r.S&&e.date<=r.E)gs+=e.amt});
+  var curs=Object.keys(T).sort(function(x,y){return (y===g.cur)-(x===g.cur)||x.localeCompare(y)});
+  var h='<div class="s" style="margin-bottom:8px">Everyone who shares · '+esc(label())+' · balances as at '+nice(r.E)+'</div>';
+  if(!curs.length)h+='<div class="empty">Nothing is shared with this group yet.</div>';
+  curs.forEach(function(c){var v=T[c];h+=(curs.length>1?'<div class="s" style="margin-top:8px;font-weight:700">'+c+'</div>':'')+'<div class="mini">'+mini("Net worth",fmt(v.net,c))+mini("Income − expenses",'<span class="'+(v.inc-v.exp<0?"neg":"pos")+'">'+sfmt(v.inc-v.exp,c)+'</span>')+mini("Cash &amp; bank",fmt(v.liquid,c))+mini("Total assets",fmt(v.assets,c))+mini("Total liabilities",fmt(v.liab,c))+mini("Income",fmt(v.inc,c))+mini("Expenses",fmt(v.exp,c))+'</div>'});
+  var ti=0,te=0,tc=g.cur;S.tx.forEach(function(t){if((t.groups||[]).indexOf(g.id)>=0&&t.date>=r.S&&t.date<=r.E&&curOf(t)===g.cur){var d=dir(t);if(d>0)ti+=t.amt;else if(t.type==="expense"||tOut(t)||(t.type==="loanpay"&&t.int))te+=t.type==="loanpay"?t.int:t.amt}});
+  h+='<div class="mini">'+mini("Group shared spending",fmt(gs,g.cur))+mini("Tagged to this group: income",fmt(ti,tc))+mini("Tagged to this group: spending",fmt(te,tc))+'</div>';
+  h+='<div style="margin-top:12px">'+people.map(function(p){var c=Object.keys(p.T||{}).sort(function(x,y){return (y===g.cur)-(x===g.cur)})[0],v=c&&p.T[c];
+    return '<div class="item"><div class="m"><div>'+esc(p.name)+'</div><div class="s">'+SHL[p.lvl]+(p.m&&p.m!==curMonth().S.slice(0,7)?" · last updated "+p.m:"")+'</div></div>'+(v?'<div style="text-align:right"><div class="amt">'+fmt(v.net,c)+'</div><div class="s">'+sfmt(v.inc-v.exp,c)+' this month</div></div>':'<span class="s">—</span>')+'</div>'}).join("")+'</div>';
+  var notJoined=g.members.filter(function(x){return !x.me&&!x.uid}).length;
+  h+='<div class="s" style="margin-top:10px">Other members’ figures are for this month and update whenever they use Bloom.'+(notJoined?' '+notJoined+' member'+(notJoined===1?" hasn’t":"s haven’t")+' joined yet.':'')+'</div>';
+  return h};
+/* private document storage on the website (Supabase Storage, one folder per person) */
+var SBDOC={upload:async function(f){if(!syncReady())throw{code:"not_signed_in"};if(f.size>20971520)throw{code:"too_large"};
+    var safe=String(f.name||"file").replace(/[^A-Za-z0-9._-]+/g,"_").slice(-80),path=myUid()+"/"+uid("f")+"-"+safe;
+    var r=await AUTH.client.storage.from("documents").upload(path,f,{contentType:f.type||"application/octet-stream",upsert:false});
+    if(r.error)throw{code:r.error.statusCode||r.error.message||"upload_failed"};return{id:"sb:"+path}},
+  "delete":async function(id){if(String(id).indexOf("sb:")!==0)return;await AUTH.client.storage.from("documents").remove([String(id).slice(3)])}};
+async function docBlob(id){if(String(id).indexOf("sb:")===0){var r=await AUTH.client.storage.from("documents").download(String(id).slice(3));if(r.error||!r.data)throw{code:"missing_file"};return r.data}
+  var rs=await fetch("/_blob/"+id);if(!rs.ok)throw{code:"missing_file"};return await rs.blob()}
+document.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a[data-dopen]");if(!a||!a.dataset||!a.dataset.dopen)return;var id=a.dataset.dopen;if(id.indexOf("sb:")!==0)return;
+  if(e.preventDefault)e.preventDefault();if(!syncReady()){tell("Log in to open stored files.");return}var w=window.open("","_blank");
+  AUTH.client.storage.from("documents").createSignedUrl(id.slice(3),120).then(function(r){if(r.error||!r.data){if(w)w.close();tell("Couldn’t open this file just now. Check your connection and try again.");return}if(w)w.location=r.data.signedUrl;else location.href=r.data.signedUrl})},true);
+function docStoreSync(){if(window.claude&&window.claude.use)return;CAP.assets=syncReady()?SBDOC:null;CAP.ready=true}
+var _dEnter=enterApp;enterApp=function(u){var r=_dEnter.apply(this,arguments);docStoreSync();if(tab==="dc")render();return r};
+var _dShowAuth=showAuth;showAuth=function(v){var r=_dShowAuth.apply(this,arguments);docStoreSync();return r};
+docStoreSync();
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
 setTimeout(splashDone,7000);
