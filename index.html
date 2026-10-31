@@ -419,7 +419,16 @@ header .hdr-av{width:44px;height:44px;font-size:17px}
 .item .x-ic.in{color:var(--g)}
 #am{font-size:30px;font-weight:800;text-align:center;height:60px}
 html[data-style="mid"]{--g:#0B7A53;--chip:#E1F2EA}html[data-style="mid"][data-theme="dark"]{--g:#3DDC97;--chip:#173527}
-#syncst.error,#syncst.offline{color:var(--warn)}#syncst a{color:inherit;text-decoration:underline}
+#syncst.error,#syncst.offline{color:var(--warn)}
+.x-avs{display:flex;margin:0 0 10px 6px}.x-avs i{width:32px;height:32px;border-radius:50%;color:#fff;font-style:normal;font-weight:700;font-size:13px;display:grid;place-items:center;border:2px solid var(--card);margin-left:-6px}
+.gcard{text-align:left;width:100%;display:block}
+main .note{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 12px}
+.x-drop{width:100%;border:2px dashed var(--line);background:var(--card);border-radius:18px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--ink);margin:4px 0 12px;cursor:pointer}
+.x-drop .ico{color:var(--g)}.x-drop b{font-size:15px}
+.x-ring{flex:none}
+.fill.w{background:var(--warn)}.fill.o{background:var(--r)}
+.trend .col span:first-child{background:var(--g)!important}.trend .col span:last-child{background:var(--r)!important}
+.legend i{border-radius:3px}#syncst a{color:inherit;text-decoration:underline}
 @media (max-width:1023px){
   dialog{margin:auto 0 0;width:100%;max-width:100%;box-sizing:border-box;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;border:0}
   dialog:before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
@@ -772,7 +781,7 @@ function renderAN(r){
   var A=agg(r),F=A.F,b=S.base,k=F.k(b),inc=F.inc[b]||0,ex=F.exp[b]||0,sp=F.spend[b]||0,cf=F.cf(b);
   var HS=series(6).map(function(q){return{q:q,f:flows(q),n:(calc(q.E).T[b]||{net:0}).net}}),pf=HS[4].f,EB=calc(r.E);
   var h='<h2>Analysis · '+esc(label())+'</h2><div class="s" style="margin:-6px 0 10px">Figures in '+b+' ('+CNAME[b]+'). Change the period at the top.</div>';
-  h+='<div class="card"><h3>Text report</h3><p class="s" style="margin:4px 0 8px">An overview plus a detailed report you can copy into an email, note or document.</p>'+
+  var rpt='<div class="card"><h3>Text report</h3><p class="s" style="margin:4px 0 8px">An overview plus a detailed report you can copy into an email, note or document.</p>'+
     '<div class="row" style="justify-content:flex-start;gap:18px;flex-wrap:wrap"><label style="margin:0;color:var(--ink);display:flex;gap:6px;align-items:center"><input type="radio" name="rpm" id="rps" checked style="width:auto"> Selected period ('+esc(label())+')</label><label style="margin:0;color:var(--ink);display:flex;gap:6px;align-items:center"><input type="radio" name="rpm" id="rpc" style="width:auto"> Custom dates</label></div>'+
     '<div class="two"><div><label for="rpf">From</label><input type="date" id="rpf" value="'+r.S+'"></div><div><label for="rpt">To</label><input type="date" id="rpt" value="'+r.E+'"></div></div>'+
     '<div class="btns" style="justify-content:flex-start"><button class="pri" data-rp="gen">Generate report</button><button data-rp="copy">Copy</button></div>'+
@@ -780,8 +789,8 @@ function renderAN(r){
   h+='<div class="card"><h3>Summary</h3><div class="mini">'+mini("Total income",fmt(inc,b))+mini("Total expenses",fmt(ex,b))+mini("Cash flow balance",'<span class="'+(cf<0?"neg":"pos")+'">'+sfmt(cf,b)+'</span>')+mini("Savings rate",inc?Math.round(cf/inc*100)+"%":"—")+mini("Credit-card purchases",fmt(k.cs,b))+mini("All spending",fmt(sp,b))+mini("Average daily spending",fmt(Math.round(sp/A.days),b))+mini("Transactions",String(F.list.length))+'</div>'+
     '<div class="s" style="margin-top:8px">Savings rate is the cash flow balance as a share of income. All spending includes credit-card purchases.</div></div>';
   var mx=1;HS.forEach(function(x){mx=Math.max(mx,x.f.inc[b]||0,x.f.exp[b]||0)});
-  h+='<div class="card"><h3>Income vs expenses · last 6 periods</h3><div class="legend" style="margin:6px 0 12px"><span><i style="background:#2e7d4e"></i>Income</span><span><i style="background:#c0473c"></i>Expenses</span></div><div class="trend" aria-hidden="true">'+
-    HS.map(function(x){var i=x.f.inc[b]||0,e=x.f.exp[b]||0;return '<div><div class="col" title="'+esc(plabel(x.q))+': income '+fmt(i,b)+', expenses '+fmt(e,b)+'"><span style="height:'+(i/mx*100).toFixed(1)+'%;background:#2e7d4e"></span><span style="height:'+(e/mx*100).toFixed(1)+'%;background:#c0473c"></span></div><div class="s" style="text-align:center;margin-top:4px">'+esc(plabel(x.q))+'</div></div>'}).join("")+'</div>'+
+  h+='<div class="card"><h3>Income vs expenses · last 6 periods</h3><div class="legend" style="margin:6px 0 12px"><span><i style="background:var(--g)"></i>Income</span><span><i style="background:var(--r)"></i>Expenses</span></div><div class="trend" aria-hidden="true">'+
+    HS.map(function(x){var i=x.f.inc[b]||0,e=x.f.exp[b]||0;return '<div><div class="col" title="'+esc(plabel(x.q))+': income '+fmt(i,b)+', expenses '+fmt(e,b)+'"><span style="height:'+(i/mx*100).toFixed(1)+'%;background:var(--g)"></span><span style="height:'+(e/mx*100).toFixed(1)+'%;background:var(--r)"></span></div><div class="s" style="text-align:center;margin-top:4px">'+esc(plabel(x.q))+'</div></div>'}).join("")+'</div>'+
     '<ul class="vh">'+HS.map(function(x){return '<li>'+esc(plabel(x.q))+': income '+fmt(x.f.inc[b]||0,b)+', expenses '+fmt(x.f.exp[b]||0,b)+'</li>'}).join("")+'</ul>'+
     '<div class="s" style="margin:14px 0 0">Net worth at the end of each period</div><div class="mini">'+HS.map(function(x){return mini(esc(plabel(x.q)),fmt(x.n,b))}).join("")+'</div></div>';
   var cs=sortedKeys(F.by);
@@ -796,7 +805,7 @@ function renderAN(r){
   h+='<div class="card"><h3>Account activity</h3>'+(ac.length?ac.map(function(x){var a=A.acct[x.id];return '<div class="item"><div class="m"><div>'+esc(x.name)+'</div><div class="s">In +'+fmt(a.i,x.cur)+' · Out −'+fmt(a.o,x.cur)+'</div></div><div style="text-align:right"><div class="amt">'+fmt(EB.a[x.id],x.cur)+'</div><div class="s">balance at period end</div></div></div>'}).join(""):'<div class="empty">No account activity in this period.</div>')+'</div>';
   if(S.cards.length)h+='<div class="card"><h3>Credit cards</h3>'+S.cards.map(function(x){var a=A.card[x.id]||{p:0,r:0},o=EB.c[x.id],u=x.limit?Math.round(o/x.limit*100):null;
     return '<div class="item"><div class="m"><div>'+esc(x.name)+(x.last4?' <span class="s">•• '+esc(x.last4)+'</span>':'')+'</div><div class="s">Purchases '+fmt(a.p,x.cur)+' · Repaid '+fmt(a.r,x.cur)+(u!==null?' · '+u+'% of limit used':'')+'</div></div><div style="text-align:right"><div class="amt neg">'+fmt(o,x.cur)+'</div><div class="s">owed at period end</div></div></div>'}).join("")+'</div>';
-  h+='<div class="s">Net worth breakdown and debt checks are in the Assets &amp; Liabilities tab.</div>';
+  h+=rpt+'<div class="s">Net worth breakdown and debt checks are in the Assets &amp; Liabilities tab.</div>';
   return h;
 }
 
@@ -883,12 +892,12 @@ function plan(b){var cr=[],db=[],out=[],i=0,j=0;
   return out}
 function gUsed(g,mid){return g.exps.some(function(e){return e.paidBy===mid||e.split.indexOf(mid)>=0})||g.settles.some(function(s){return s.from===mid||s.to===mid})}
 function renderG(){
-  var h='<div class="note" style="border-left-color:var(--g)">Groups are kept on this device for now. Inviting people, members accepting, and sharing your own accounts with a group need sign-in and a secure database, which is the next stage. Group expenses don’t change your personal balances. Record your own payments in Transactions.</div>';
+  var h='<div class="note" style="border-left-color:var(--g)">Inviting people to join your groups is coming soon. Group expenses don’t change your personal balances, so record your own payments in Transactions too.</div>';
   if(gov)return h+renderGovs();var g=openG&&G(openG);if(g)return h+renderGroup(g);openG=null;
   h+='<div class="row"><h2>Groups</h2><button class="pri" data-g="new">Create group</button></div>';
   if(!S.groups.length)return h+'<div class="card"><h3>Manage money with others</h3><p class="s">Create a group for your family, friends, a trip or a project. Add members, set up tasks with budgets, record who paid for what, and see who owes whom.</p><button class="pri" data-g="new">Create your first group</button></div>';
   return h+S.groups.map(function(g){var b=gbal(g),me=g.members.filter(function(m){return m.me})[0],mb=me?b[me.id]:0,tot=g.exps.reduce(function(s,e){return s+e.amt},0);
-    return '<button class="card gcard" data-g="open" data-id="'+g.id+'"><span class="row"><span><b style="font-size:17px">'+esc(g.name)+'</b><br><span class="s">'+esc(g.type)+' · '+(g.access==="all"?"All access":"Partial access")+' · '+g.members.length+' member'+(g.members.length===1?'':'s')+' · '+g.tasks.length+' task'+(g.tasks.length===1?'':'s')+'</span></span><span style="text-align:right"><span class="amt">'+fmt(tot,g.cur)+'</span><br><span class="pill '+(mb>0?"up":mb<0?"dn":"")+'">'+(mb>0?"You’re owed "+fmt(mb,g.cur):mb<0?"You owe "+fmt(-mb,g.cur):"Settled")+'</span></span></span></button>'}).join("");
+    return '<button class="card gcard" data-g="open" data-id="'+g.id+'"><span class="x-avs" aria-hidden="true">'+g.members.slice(0,5).map(function(m,i){return '<i style="background:'+["#0B7A53","#3C6FD1","#9A6B00","#8A4FD1","#B23A24"][i%5]+'">'+esc((m.name||"?").charAt(0).toUpperCase())+'</i>'}).join("")+'</span><span class="row"><span><b style="font-size:17px">'+esc(g.name)+'</b><br><span class="s">'+esc(g.type)+' · '+(g.access==="all"?"All access":"Partial access")+' · '+g.members.length+' member'+(g.members.length===1?'':'s')+' · '+g.tasks.length+' task'+(g.tasks.length===1?'':'s')+'</span></span><span style="text-align:right"><span class="amt">'+fmt(tot,g.cur)+'</span><br><span class="pill '+(mb>0?"up":mb<0?"dn":"")+'">'+(mb>0?"You’re owed "+fmt(mb,g.cur):mb<0?"You owe "+fmt(-mb,g.cur):"Settled")+'</span></span></span></button>'}).join("");
 }
 function renderGroup(g){
   var b=gbal(g),me=g.members.filter(function(m){return m.me})[0],P=plan(b),c=g.cur,tot=0,myShare=0,myPaid=0;
@@ -1088,11 +1097,12 @@ function renderGoals(){
     if(sv>=x.target)hint='<span class="pill up">Goal reached</span>';
     else if(x.date){var mo=monthsTo(x.date);hint=mo<0?'<span class="pill dn">Target date passed</span>':'<span class="s">Save '+fmt(Math.ceil(left/Math.max(1,mo)),x.cur)+' a month to reach it by '+nice(x.date)+'</span>'}
     var mv=x.moves.slice().sort(function(m1,m2){return m2.d.localeCompare(m1.d)||m2.at-m1.at});
-    return '<div class="card"><div class="row"><div><b style="font-size:16px">'+esc(x.name)+'</b><div class="s">'+fmt(sv,x.cur)+' of '+fmt(x.target,x.cur)+(a?' · kept in '+esc(a.name):'')+'</div></div><span class="amt">'+p+'%</span></div>'+
+    return '<div class="card"><div class="row"><div><b style="font-size:16px">'+esc(x.name)+'</b><div class="s">'+fmt(sv,x.cur)+' of '+fmt(x.target,x.cur)+(a?' · kept in '+esc(a.name):'')+'</div></div>'+goalRing(p)+'</div>'+
       '<div class="track" style="height:10px"><div class="fill" style="width:'+p+'%"></div></div><div class="row" style="margin-top:8px;flex-wrap:wrap"><span>'+hint+'</span><span class="s">'+(left?fmt(left,x.cur)+" to go":"")+'</span></div>'+
       '<div class="row" style="justify-content:flex-start;flex-wrap:wrap;gap:6px;margin-top:10px"><button class="pri" data-g="gin" data-id="'+x.id+'">Add money</button><button data-g="gout" data-id="'+x.id+'"'+(sv>0?'':' disabled')+'>Take out</button><button data-g="goal" data-id="'+x.id+'">Edit</button><button data-g="delgoal" data-id="'+x.id+'" style="color:var(--r)">Delete</button></div>'+
       (mv.length?'<details style="margin-top:10px"><summary class="s" style="cursor:pointer">History ('+mv.length+')</summary>'+mv.map(function(m){return '<div class="item"><div class="m"><div>'+(m.amt>0?"Added":"Taken out")+(m.note?' · '+esc(m.note):'')+'</div><div class="s">'+nice(m.d)+'</div></div><div class="row"><span class="amt '+(m.amt>0?"pos":"neg")+'">'+(m.amt>0?"+":"−")+fmt(Math.abs(m.amt),x.cur)+'</span><button class="x" data-g="delmove" data-id="'+x.id+'" data-mid="'+m.id+'" aria-label="Delete entry">✕</button></div></div>'}).join("")+'</details>':'')+'</div>'}).join("");
 }
+function goalRing(p){var L=163.4;return '<svg class="x-ring" width="60" height="60" viewBox="0 0 64 64" role="img" aria-label="'+p+'% saved"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--track)" stroke-width="7"></circle><circle cx="32" cy="32" r="26" fill="none" stroke="var(--g)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(L*p/100).toFixed(1)+' '+L+'" transform="rotate(-90 32 32)"></circle><text x="32" y="37" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)">'+p+'%</text></svg>'}
 function findGoal(id){return S.goals.filter(function(x){return x.id===id})[0]}
 
 /* ---------- Documents and statements ----------
@@ -1108,10 +1118,9 @@ function kb(n){return n>=1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.ro
 function isStmt(d){return d.type==="bank"||d.type==="card"}
 
 function renderDocs(){
-  var h='<div class="row" style="flex-wrap:wrap"><h2>Documents</h2><button class="pri" data-g="dnew">Upload document</button></div>';
-  h+='<div class="note" style="border-left-color:var(--g)">Keep agreements, invoices and bank or credit card statements here. Bloom can read a statement, give you insights, and check it against what you’ve recorded. Reading a statement sends its contents to Claude. Files are stored with this page, so don’t share the page link with anyone who shouldn’t see them.</div>';
-  if(CAP.ready&&!CAP.assets)h+='<div class="note">File storage isn’t available in this view, so only document details are saved here, not the files themselves. Statements can still be read and checked.</div>';
-  if(CAP.ready&&!CAP.sample)h+='<div class="note">Reading statements isn’t available in this view. You can still store and organise documents.</div>';
+  var h='<h2>Documents</h2><button class="x-drop" data-g="dnew">'+ico("upload",26)+'<b>Upload a document</b><span class="s">PDF, photo, CSV or text · statements can be checked against what you’ve recorded</span></button>';
+  if(CAP.ready&&!CAP.assets)h+='<div class="note">Bloom keeps each document’s details: title, type, date and account. Saving the file itself is coming soon.</div>';
+  if(CAP.ready&&!CAP.sample)h+='<div class="note">Automatic statement reading is coming soon. You can already keep and organise your documents here.</div>';
   var L=S.docs.filter(function(d){return !dfil||d.type===dfil}).sort(function(a,b){return b.at-a.at});
   if(S.docs.length)h+='<div class="row" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+[["","All"]].concat(Object.keys(DTYPES).map(function(k){return [k,DTYPES[k]]})).map(function(x){var n=x[0]?S.docs.filter(function(d){return d.type===x[0]}).length:S.docs.length;return '<button data-g="dfil" data-id="'+x[0]+'"'+(dfil===x[0]?' class="pri" aria-pressed="true"':' aria-pressed="false"')+'>'+x[1]+' ('+n+')</button>'}).join("")+'</div>';
   if(!S.docs.length)return h+'<div class="card"><h3>No documents yet</h3><p class="s">Upload a PDF, photo, CSV or text file. For bank and card statements, Bloom will offer to read and check them.</p><button class="pri" data-g="dnew">Upload your first document</button></div>';
