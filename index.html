@@ -434,6 +434,7 @@ main .note{background:var(--card);border:1px solid var(--line);border-radius:14p
 .tx-tabs{display:flex;gap:2px;padding:3px;border-radius:14px;background:var(--track);overflow:hidden;margin:4px 0 6px}
 .tx-tabs button{flex:1 1 auto;min-width:0;min-height:38px;border:0;background:transparent;color:var(--mute);font-weight:600;font-size:13px;padding:0 6px;border-radius:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:400px){.tx-tabs button{font-size:12px;padding:0 3px}}
+@media (max-width:345px){.tx-tabs{flex-wrap:wrap}.tx-tabs button{flex:1 1 30%;text-overflow:clip}}
 .tx-tabs button[aria-checked="true"]{background:var(--card);color:var(--ink);font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.14)}
 .tx-chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
 .tx-chips button{min-height:36px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;font-size:13px;line-height:1.2;max-width:100%;overflow-wrap:anywhere;text-align:left}
