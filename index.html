@@ -429,6 +429,8 @@ main .note{background:var(--card);border:1px solid var(--line);border-radius:14p
 .fill.w{background:var(--warn)}.fill.o{background:var(--r)}
 .trend .col span:first-child{background:var(--g)!important}.trend .col span:last-child{background:var(--r)!important}
 .legend i{border-radius:3px}
+.btnlike{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:12px;color:var(--ink);background:var(--card);text-decoration:none;font-weight:600}
+#dinvl{width:100%;box-sizing:border-box;font-size:13px}
 /* ===== v0.19 Add transaction controls ===== */
 #dt .chip-sel{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none;margin:0;padding:0;border:0}
 .tx-tabs{display:flex;gap:2px;padding:3px;border-radius:14px;background:var(--track);overflow:hidden;margin:4px 0 6px}
@@ -951,14 +953,14 @@ function renderG(){
 function renderGroup(g){
   var b=gbal(g),me=g.members.filter(function(m){return m.me})[0],P=plan(b),c=g.cur,tot=0,myShare=0,myPaid=0;
   g.exps.forEach(function(e){tot+=e.amt;if(me){var s=shares(e);myShare+=s[me.id]||0;if(e.paidBy===me.id)myPaid+=e.amt}});
-  var h='<div class="row" style="margin-top:6px"><button data-g="back">‹ All groups</button><div class="row"><button data-g="edit">Edit</button><button data-g="del" style="color:var(--r)">Delete</button></div></div>';
+  var h='<div class="row" style="margin-top:6px"><button data-g="back">‹ All groups</button><div class="row"><button data-g="edit">Edit</button><button data-g="del" style="color:var(--r)">'+gDelLabel(g)+'</button></div></div>';
   h+='<h2 style="margin-top:12px">'+esc(g.name)+'</h2><div class="s" style="margin:-6px 0 10px">'+esc(g.type)+' · '+c+' ('+CNAME[c]+')</div>';
   h+='<div class="card"><div class="mini" style="margin-top:0">'+mini("Total spent",fmt(tot,c))+mini("Your share",fmt(myShare,c))+mini("You paid",fmt(myPaid,c))+mini("Your balance",'<span class="'+((me&&b[me.id]<0)?"neg":"pos")+'">'+sfmt(me?b[me.id]:0,c)+'</span>')+'</div></div>';
   h+='<div class="card"><h3>Group financial overview</h3>'+groupOverview(g,range())+'</div>'+accessCard(g);
   var tg=S.tx.filter(function(t){return (t.groups||[]).indexOf(g.id)>=0}).sort(function(x,y){return y.date.localeCompare(x.date)||y.at-x.at});
-  h+='<div class="card"><div class="row"><h3>Tagged transactions</h3><span class="s">'+tg.length+'</span></div><div class="s" style="margin-bottom:6px">Your income, expenses and transfers marked as related to this group. Members see these once they join with sign-in.</div>'+(tg.length?tg.slice(0,10).map(txRow).join("")+(tg.length>10?'<button data-g="txfilter" data-id="'+g.id+'" style="margin-top:8px">See all '+tg.length+' in Transactions</button>':''):'<div class="empty">Nothing tagged yet. When adding a transaction, choose “A group or groups” under “This is for”.</div>')+'</div>';
+  h+='<div class="card"><div class="row"><h3>Tagged transactions</h3><span class="s">'+tg.length+'</span></div><div class="s" style="margin-bottom:6px">Your income, expenses and transfers marked as related to this group. Only you see your tagged transactions.</div>'+(tg.length?tg.slice(0,10).map(txRow).join("")+(tg.length>10?'<button data-g="txfilter" data-id="'+g.id+'" style="margin-top:8px">See all '+tg.length+' in Transactions</button>':''):'<div class="empty">Nothing tagged yet. When adding a transaction, choose “A group or groups” under “This is for”.</div>')+'</div>';
   h+='<div class="card"><h3>Settle up</h3>'+(P.length?P.map(function(p){return '<div class="item"><div class="m"><div>'+esc(mname(g,p.from))+' pays '+esc(mname(g,p.to))+'</div></div><div class="row"><span class="amt">'+fmt(p.amt,c)+'</span><button data-g="settle" data-f="'+p.from+'" data-to="'+p.to+'" data-amt="'+p.amt+'">Record payment</button></div></div>'}).join(""):'<div class="empty">Everyone is settled up.</div>')+'</div>';
-  h+='<div class="row"><h2>Members</h2><button data-g="member">Add member</button></div><div class="card">'+g.members.map(function(m){var v=b[m.id]||0;return '<div class="item"><div class="m"><div>'+esc(m.name)+(m.me?' <span class="pill">You</span>':'')+'</div><div class="s">'+(m.me?"Owner · "+SHL[myLevel(g)]:(m.contact?esc(m.contact)+" · ":"")+"Not connected yet")+'</div></div><div class="row"><span class="pill '+(v>0?"up":v<0?"dn":"")+'">'+(v>0?"Owed "+fmt(v,c):v<0?"Owes "+fmt(-v,c):"Settled")+'</span>'+(m.me?'':'<button class="x" data-g="delm" data-id="'+m.id+'" aria-label="Remove member">✕</button>')+'</div></div>'}).join("")+'</div>';
+  h+='<div class="row"><h2>Members</h2><span class="row" style="gap:8px">'+(syncReady()?'<button class="pri" data-gi="'+g.id+'">Invite people</button>':'')+'<button data-g="member">Add member</button></span></div><div class="card">'+g.members.map(function(m){var v=b[m.id]||0;return '<div class="item"><div class="m"><div>'+esc(m.name)+(m.me?' <span class="pill">You</span>':'')+'</div><div class="s">'+gMemStatus(g,m)+'</div></div><div class="row"><span class="pill '+(v>0?"up":v<0?"dn":"")+'">'+(v>0?"Owed "+fmt(v,c):v<0?"Owes "+fmt(-v,c):"Settled")+'</span>'+gMemBtns(g,m)+'</div></div>'}).join("")+gNote(g)+'</div>';
   h+='<div class="row"><h2>Tasks</h2><button data-g="task">Add task</button></div><div class="card">'+(g.tasks.length?g.tasks.map(function(t){var sp=g.exps.filter(function(e){return e.task===t.id}).reduce(function(s,e){return s+e.amt},0),p=t.budget?Math.min(100,Math.round(sp/t.budget*100)):0,cl=t.budget&&sp>t.budget?"o":(t.budget&&sp>=t.budget*.8?"w":"");
     return '<div style="margin-bottom:14px"><div class="row"><span><b>'+esc(t.name)+'</b><span class="s"> · spent '+fmt(sp,c)+(t.budget?' of '+fmt(t.budget,c):'')+'</span></span><span class="row"><button class="x" data-g="task" data-id="'+t.id+'">Edit</button><button class="x" data-g="delt" data-id="'+t.id+'" aria-label="Delete task">✕</button></span></div>'+(t.budget?'<div class="track"><div class="fill '+cl+'" style="width:'+p+'%"></div></div><div class="s">'+(sp>t.budget?"Over budget by "+fmt(sp-t.budget,c):fmt(t.budget-sp,c)+" left")+'</div>':'')+'</div>'}).join(""):'<div class="empty">No tasks yet. Use tasks for things like a trip, a wedding or a house repair.</div>')+'</div>';
   var ex=g.exps.slice().sort(function(x,y){return y.date.localeCompare(x.date)||y.at-x.at});
@@ -1981,10 +1983,93 @@ function txChips(){TXCH.forEach(function(x){var s=$(x[0]);if(!s)return;
     var ic=x[0]==="ct"?ico(v==="__new"?"plus":(CATICO[v]||INCICO[v]||"dot"),20):"";
     return '<button type="button" role="radio" aria-checked="'+on+'" data-chs="'+x[0]+'" data-v="'+esc(v)+'">'+ic+'<span>'+esc(t)+'</span></button>'}).join("");
   box.hidden=!s.options.length||s.style.display==="none"})}
-document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button[data-chs]");if(!b)return;e.preventDefault();var s=$(b.dataset.chs);if(!s)return;s.value=b.dataset.v;s.dispatchEvent(new Event("change",{bubbles:true}));txChips();if(b.dataset.v==="__new"){var n=$(b.dataset.chs==="ct"?"nc":"ns");if(n)n.focus()}});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button[data-chs]");if(!b||!b.dataset||!b.dataset.chs)return;if(e.preventDefault)e.preventDefault();var s=$(b.dataset.chs);if(!s)return;s.value=b.dataset.v;s.dispatchEvent(new Event("change",{bubbles:true}));txChips();if(b.dataset.v==="__new"){var n=$(b.dataset.chs==="ct"?"nc":"ns");if(n)n.focus()}});
 document.addEventListener("change",function(e){if(e.target&&e.target.closest&&e.target.closest("#dt"))setTimeout(txChips,0)});
 document.addEventListener("click",function(e){if(e.target&&e.target.closest&&e.target.closest("#dt")&&!e.target.closest("button[data-chs]"))setTimeout(txChips,0)});
 var _openTx=openTx;openTx=function(){var r=_openTx.apply(this,arguments);txChips();return r};
+/* ===== v0.20 Shared groups with invite links =====
+   A shared group is stored once in the database (bloom_groups) and every member reads and edits the same copy.
+   Joining happens only through an invite link; the database checks membership on every read and write. */
+var GS={timer:null,busy:false};
+function myUid(){return AUTH.user&&AUTH.user.id}
+function gPack(g){var d=JSON.parse(JSON.stringify(g));delete d.cloud;delete d.cver;delete d.owner;delete d._sent;(d.members||[]).forEach(function(m){delete m.me});return d}
+function gUnpack(row){var g=row.data||{};g.cloud=row.id;g.cver=row.version;g.owner=row.owner;
+  g.members=(g.members||[]).map(function(m){m.me=!!(m.uid&&m.uid===myUid());if(m.me){m.share=m.share||"none";m.items=m.items||[]}return m});
+  g.exps=g.exps||[];g.tasks=g.tasks||[];g.settles=g.settles||[];g.access=g.access||"partial";g._sent=JSON.stringify(gPack(g));return g}
+function gKeep(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(typeof queuePush==="function"&&AUTH.user)queuePush()}
+async function gPull(){if(!syncReady()||!navigator.onLine)return;
+  var r=await AUTH.client.from("bloom_groups").select("id,owner,data,version").then(null,function(e){return{error:e}});if(r.error||!r.data)return;
+  var ids={},changed=false,clash=null;
+  r.data.forEach(function(row){ids[row.id]=1;var i=-1;S.groups.forEach(function(g,k){if(g.cloud===row.id)i=k});
+    if(i<0){var ng=gUnpack(row);if(G(ng.id))ng.id=ng.id+"-"+row.id.slice(0,6);S.groups.push(ng);changed=true}
+    else{var lg=S.groups[i];if(row.version>lg.cver){var dirty=JSON.stringify(gPack(lg))!==lg._sent,nl=gUnpack(row);nl.id=lg.id;S.groups[i]=nl;changed=true;if(dirty)clash=nl.name}}});
+  var n=S.groups.length;S.groups=S.groups.filter(function(g){return !g.cloud||ids[g.cloud]});if(S.groups.length!==n){changed=true;if(openG&&!G(openG))openG=null}
+  if(changed){gKeep();render()}
+  if(clash)tell("Someone else in “"+clash+"” changed it at the same time, so the latest version is shown. Please check your last change.")}
+function gQueue(){clearTimeout(GS.timer);GS.timer=setTimeout(gPush,1200)}
+async function gPush(){if(!syncReady()||GS.busy)return;if(!navigator.onLine)return;GS.busy=true;var conflict=false;
+  for(var i=0;i<S.groups.length;i++){var g=S.groups[i];if(!g.cloud)continue;var p=gPack(g),js=JSON.stringify(p);if(js===g._sent)continue;
+    var r=await AUTH.client.from("bloom_groups").update({data:p,version:g.cver+1}).eq("id",g.cloud).eq("version",g.cver).select("version").maybeSingle().then(null,function(e){return{error:e}});
+    if(r.error)continue;if(!r.data){conflict=true;continue}g.cver=r.data.version;g._sent=js}
+  GS.busy=false;gKeep();if(conflict)gPull()}
+async function gEnsureCloud(g){if(g.cloud)return true;var me=g.members.filter(function(m){return m.me})[0];if(me)me.uid=myUid();var p=gPack(g);
+  var r=await AUTH.client.rpc("create_bloom_group",{p_data:p}).then(null,function(e){return{error:e}});
+  if(r.error||!r.data){tell("Couldn’t share this group just now. Please try again.");return false}
+  g.cloud=r.data;g.cver=1;g.owner=myUid();g._sent=JSON.stringify(p);gKeep();return true}
+async function gInvite(gid,mid){var g=G(gid);if(!g)return;
+  if(!syncReady()){tell("Log in to invite people to this group.");return}
+  if(!navigator.onLine){tell("You’re offline. Connect to the internet to create an invite link.");return}
+  if(!(await gEnsureCloud(g)))return;
+  var r=await AUTH.client.rpc("create_bloom_invite",{p_group:g.cloud,p_member:mid||null}).then(null,function(e){return{error:e}});
+  if(r.error||!r.data){tell("Couldn’t create an invite link just now. Please try again.");return}
+  var who=mid?(g.members.filter(function(m){return m.id===mid})[0]||{}).name:"",link=location.origin+location.pathname+"?join="+encodeURIComponent(r.data);
+  gShowInvite(g,who,link,"Join my group “"+g.name+"” on Bloom Finance: "+link);render()}
+function gShowInvite(g,who,link,msg){var d=$("dinv");if(!d){d=document.createElement("dialog");d.id="dinv";d.setAttribute("aria-labelledby","dinvt");document.body.appendChild(d)}
+  d.innerHTML='<h3 id="dinvt">Invite '+(who?esc(who):"people")+' to '+esc(g.name)+'</h3><p class="s" style="margin:6px 0 10px">'+(who?"This link is for "+esc(who)+" and works once.":"Anyone with this link can join.")+' It expires in 7 days. They log in or create a free account, then join.</p><input id="dinvl" readonly value="'+esc(link)+'" aria-label="Invite link"><div class="x-acts"><button type="button" class="pri" data-inv="share">Share</button><button type="button" data-inv="copy">Copy link</button><a class="btnlike" href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">WhatsApp</a></div><div class="s" id="dinvs" role="status" style="margin-top:8px;min-height:1.2em"></div><div class="btns"><button type="button" data-inv="close">Done</button></div>';
+  d._msg=msg;d._link=link;if(!d.open)d.showModal()}
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("[data-inv]");if(!b||!b.dataset||!b.dataset.inv)return;var d=$("dinv"),a=b.dataset.inv;if(e.preventDefault)e.preventDefault();
+  if(a==="close")d.close();
+  else if(a==="copy"){var done=function(){$("dinvs").textContent="Link copied."};var i=$("dinvl");i.select();if(navigator.clipboard)navigator.clipboard.writeText(d._link).then(done,function(){try{document.execCommand("copy");done()}catch(x){$("dinvs").textContent="Select the link and copy it."}});else{try{document.execCommand("copy");done()}catch(x){}}}
+  else if(a==="share"){if(navigator.share)navigator.share({title:"Bloom Finance",text:d._msg}).catch(function(){});else $("dinvs").textContent="Sharing isn’t available on this device. Use Copy link or WhatsApp."}},true);
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button[data-gi],button[data-gr]");if(!b||!b.dataset||!(b.dataset.gi||b.dataset.gr))return;if(e.stopPropagation)e.stopPropagation();
+  if(b.dataset.gi)gInvite(b.dataset.gi,b.dataset.mid);
+  else{var g=G(b.dataset.gid),m=g&&g.members.filter(function(x){return x.uid===b.dataset.gr})[0];if(!g)return;
+    ask("Remove "+(m?m.name:"this member")+" from “"+g.name+"”? They’ll lose access to the group. Their past expenses stay in the history.",async function(){var r=await AUTH.client.rpc("remove_bloom_member",{p_group:g.cloud,p_user:b.dataset.gr}).then(null,function(e2){return{error:e2}});if(r.error){tell("Couldn’t remove them just now. Please try again.");return}await gPull()},"Remove")}},true);
+function gMemStatus(g,m){var own=g.cloud?(m.uid&&m.uid===g.owner):m.me,p=[];if(own)p.push("Owner");if(m.me)p.push(SHL[myLevel(g)]);else if(m.uid)p.push("Joined");else p.push((m.contact?esc(m.contact)+" · ":"")+"Not joined yet");return p.join(" · ")}
+function gMemBtns(g,m){if(m.me)return "";var amOwner=!g.cloud||g.owner===myUid(),h="";
+  if(!m.uid&&syncReady())h+='<button data-gi="'+g.id+'" data-mid="'+m.id+'">Invite</button>';
+  if(m.uid){if(amOwner&&g.cloud)h+='<button class="x" data-gr="'+m.uid+'" data-gid="'+g.id+'" aria-label="Remove '+esc(m.name)+' from the group">✕</button>'}
+  else if(amOwner)h+='<button class="x" data-g="delm" data-id="'+m.id+'" aria-label="Remove member">✕</button>';
+  return h}
+function gNote(g){if(!syncReady())return '<div class="s" style="margin-top:8px">Log in to invite people to this group.</div>';return g.cloud?'<div class="s" style="margin-top:8px">'+(g.owner===myUid()?"Shared online. Changes sync to everyone in the group.":"Shared with you. Changes sync to everyone in the group.")+'</div>':'<div class="s" style="margin-top:8px">Only you can see this group until you invite someone.</div>'}
+function gDelLabel(g){return g.cloud&&g.owner!==myUid()?"Leave group":"Delete"}
+function gDropLocal(g){S.groups=S.groups.filter(function(x){return x.id!==g.id});S.tx.forEach(function(t){if(t.groups){t.groups=t.groups.filter(function(i){return i!==g.id});if(!t.groups.length)delete t.groups}});openG=null;save()}
+var _gAct=gAct;gAct=function(a,b){var g=openG&&G(openG);
+  if(a==="del"&&g&&g.cloud&&syncReady()){
+    if(g.owner===myUid())ask("Delete “"+g.name+"” for everyone? All members lose access and this can’t be undone.",async function(){var r=await AUTH.client.from("bloom_groups").delete().eq("id",g.cloud).then(null,function(e){return{error:e}});if(r.error){tell("Couldn’t delete the group just now. Please try again.");return}gDropLocal(g)},"Delete for everyone");
+    else ask("Leave “"+g.name+"”? You’ll lose access until someone invites you again.",async function(){var r=await AUTH.client.rpc("leave_bloom_group",{p_group:g.cloud}).then(null,function(e){return{error:e}});if(r.error){tell("Couldn’t leave the group just now. Please try again.");return}gDropLocal(g)},"Leave group");
+    return}
+  return _gAct(a,b)};
+var _gSave=save;save=function(){var r=_gSave.apply(this,arguments);if(syncReady())gQueue();return r};
+/* invite links: ?join=CODE (kept for up to a day so it survives sign-up and email confirmation) */
+var JOIN=null;(function(){var m=/[?&]join=([A-Za-z0-9_\-]{10,40})/.exec(location.search);
+  if(m){JOIN=m[1];try{localStorage.setItem("bloom-join",JSON.stringify({c:JOIN,t:Date.now()}))}catch(e){}try{history.replaceState(null,"",location.pathname)}catch(e){}}
+  else{try{var j=JSON.parse(localStorage.getItem("bloom-join")||"null");if(j&&Date.now()-j.t<864e5)JOIN=j.c}catch(e){}}})();
+async function gJoin(){if(!JOIN||!syncReady())return;var code=JOIN;JOIN=null;try{localStorage.removeItem("bloom-join")}catch(e){}
+  var p=await AUTH.client.rpc("preview_bloom_invite",{p_code:code}).then(null,function(e){return{error:e}});var row=p.data&&(Array.isArray(p.data)?p.data[0]:p.data);
+  if(p.error||!row){tell("Couldn’t open this invite. Check your connection and open the link again.");return}
+  if(row.status==="invalid"){tell("This invite link isn’t valid.");return}
+  if(row.status==="expired"){tell("This invite link has expired. Ask "+(row.inviter||"the person who invited you")+" for a new one.");return}
+  if(row.status==="used"){tell("This invite link has already been used. Ask for a new one.");return}
+  if(row.status==="member"){await gPull();tab="gr";render();tell("You’re already in “"+row.group_name+"”.");return}
+  ask((row.inviter||"Someone")+" invited you to join “"+row.group_name+"”"+(row.member_name?" as "+row.member_name:"")+".\nJoin this group?",async function(){
+    var r=await AUTH.client.rpc("accept_bloom_invite",{p_code:code}).then(null,function(e){return{error:e}});if(r.error){tell((r.error.message||"Couldn’t join just now.").replace(/^.*?: /,""));return}
+    await gPull();var g=S.groups.filter(function(x){return x.cloud===r.data})[0];tab="gr";gov=false;openG=g?g.id:null;render();tell("You’ve joined “"+row.group_name+"”.")},"Join group")}
+var _gEnter=enterApp;enterApp=function(u){var r=_gEnter.apply(this,arguments);if(u)setTimeout(function(){gPull().then(gJoin)},400);return r};
+var _gShowAuth=showAuth;showAuth=function(v){var r=_gShowAuth.apply(this,arguments);var n=$("ajoin");if(JOIN){if(!n){n=document.createElement("div");n.id="ajoin";n.className="note";var a=$("aer");if(a&&a.parentNode)a.parentNode.insertBefore(n,a)}n.textContent="You’ve been invited to a group. Log in or create a free account to join."}else if(n&&n.parentNode)n.parentNode.removeChild(n);return r};
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&syncReady())gPull()});
+window.addEventListener("online",function(){if(syncReady()){gPush();gPull()}});
+setInterval(function(){if(syncReady()&&tab==="gr"&&document.visibilityState==="visible")gPull()},25000);
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
 setTimeout(splashDone,7000);
