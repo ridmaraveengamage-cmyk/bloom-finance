@@ -5,11 +5,11 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://lljjqsyivqstwcdxkicb.supabase.co wss://lljjqsyivqstwcdxkicb.supabase.co; worker-src 'self' blob:; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#1D6B4C">
+<meta name="theme-color" content="#0B100E">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Bloom">
+<meta name="apple-mobile-web-app-title" content="Bloom Finance">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bloom Finance</title>
@@ -428,7 +428,29 @@ main .note{background:var(--card);border:1px solid var(--line);border-radius:14p
 .x-ring{flex:none}
 .fill.w{background:var(--warn)}.fill.o{background:var(--r)}
 .trend .col span:first-child{background:var(--g)!important}.trend .col span:last-child{background:var(--r)!important}
-.legend i{border-radius:3px}#syncst a{color:inherit;text-decoration:underline}
+.legend i{border-radius:3px}
+/* ===== v0.17 fixes: no sideways scrolling on any phone, sidebar-only items, wrapped text ===== */
+html,body{overflow-x:hidden;max-width:100%}
+html{background:var(--bg)}
+.wrap,main,nav{min-width:0;max-width:100%;box-sizing:border-box}
+nav .navuser{display:none}
+.x-prof>div{min-width:0}.x-prof .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x-sec button{min-width:0;overflow-wrap:anywhere}
+.item .m{min-width:0;overflow-wrap:anywhere}
+@media (max-width:1023px){
+  .pbar{flex-wrap:nowrap;gap:6px}
+  .pbar select{width:auto;flex:none;padding:0 6px;font-size:13px}
+  .pbar #pm,.pbar #nm{flex:none}
+  .pbar #td{flex:none;padding:0 8px}
+  #ml{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;text-align:center}
+}
+@media (min-width:1024px){
+  .desk-only{display:inline-flex!important}
+  .pbar .ptitle{display:block!important}
+  nav .navuser{display:flex}
+  nav .navuser>div{min-width:0;flex:1}
+  nav .navuser b,nav .navuser small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}#syncst a{color:inherit;text-decoration:underline}
 @media (max-width:1023px){
   dialog{margin:auto 0 0;width:100%;max-width:100%;box-sizing:border-box;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;border:0}
   dialog:before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
@@ -713,7 +735,7 @@ function render(){
   else if(tab==="dc"){h+=renderDocs()}
   else if(tab==="bu"){
     var mr=monthRange(anc),M=flows(mr),mn=dd(mr.S).toLocaleDateString(undefined,{month:"long",year:"numeric"});
-    h+='<h2>Monthly budgets · '+mn+' ('+S.base+')</h2><div class="card">'+Object.keys(cats("expense")).map(function(k){var sp=M.by[k]||0,lim=S.budgets[k]||0,p=lim?Math.min(100,Math.round(sp/lim*100)):0,cl=lim&&sp>lim?"o":(lim&&sp>=lim*.8?"w":"");
+    h+='<h2>Monthly budgets · '+mn+' ('+S.base+')</h2><div class="card"><div class="addrow" style="margin-bottom:6px"><input id="bnc" maxlength="40" placeholder="New spending category" aria-label="New spending category"><button type="button" class="pri" data-bnc="1">Add category</button></div><div class="err" id="bnce" role="alert"></div><div class="s" style="margin-bottom:14px">Categories you add here also appear when you record an expense, where you can add subcategories to them.</div>'+Object.keys(cats("expense")).map(function(k){var sp=M.by[k]||0,lim=S.budgets[k]||0,p=lim?Math.min(100,Math.round(sp/lim*100)):0,cl=lim&&sp>lim?"o":(lim&&sp>=lim*.8?"w":"");
       return '<div style="margin-bottom:14px"><div class="row"><span>'+esc(k)+'<span class="s"> · spent '+fmt(sp)+'</span></span><input class="bin" type="number" min="0" step="any" data-b="'+esc(k)+'" value="'+(lim?unit(lim,S.base):"")+'" placeholder="Limit" aria-label="'+esc(k)+' budget"></div><div class="track"><div class="fill '+cl+'" style="width:'+p+'%"></div></div>'+(lim?'<div class="s">'+(sp>lim?"Over by "+fmt(sp-lim):fmt(lim-sp)+" left")+' · '+Math.round(sp/lim*100)+'% used</div>':"")+'</div>'}).join("")+'<div class="s">Budgets are monthly and count all spending in '+S.base+', including credit-card purchases. Loan interest counts toward Financial costs.</div></div>';
     h+=renderGoals();
   }else{
@@ -1912,6 +1934,14 @@ document.addEventListener("click",function(e){var b=e.target.closest("button");i
   if(d.txk!=null){e.stopPropagation();TXK=d.txk;if(!d.txk)txf="";render()}else if(d.txg!=null){e.stopPropagation();txf=txf===d.txg?"":d.txg;render()}},true);
 document.addEventListener("input",function(e){if(e.target&&e.target.id==="txq"){TXQ=e.target.value;var pos=e.target.selectionStart;render();var n=$("txq");if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}}});
 
+
+/* Budgets: add a spending category (the same list used when recording expenses) */
+function addBudgetCat(){var i=$("bnc"),er=$("bnce");if(!i)return;var n=i.value.trim().replace(/\s+/g," "),m=cats("expense");
+  if(!n){er.textContent="Type a name for the new category.";return}
+  var ex=Object.keys(m).filter(function(k){return k.toLowerCase()===n.toLowerCase()})[0];if(ex){er.textContent="“"+ex+"” already exists.";return}
+  S.custom=S.custom||{};S.custom.expense=S.custom.expense||{};S.custom.expense[n]=[];save();tell("“"+n+"” added. Set its monthly budget below, and choose it when you record an expense.")}
+document.addEventListener("click",function(e){var b=e.target.closest("button");if(b&&b.dataset.bnc){e.stopPropagation();addBudgetCat()}},true);
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&e.target&&e.target.id==="bnc"){e.preventDefault();addBudgetCat()}});
 var T0=Date.now();
 function splashDone(){var s=$("splash");if(!s||s.classList.contains("out"))return;var w=Math.max(0,1100-(Date.now()-T0));setTimeout(function(){s.classList.add("out");setTimeout(function(){if(s.parentNode)s.parentNode.removeChild(s)},450)},w)}
 setTimeout(splashDone,7000);

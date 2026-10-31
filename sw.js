@@ -2,7 +2,7 @@
    - The app page: network first (so updates arrive straight away), cached copy when offline.
    - Icons, fonts and the sign-in library: served from cache, refreshed in the background.
    - Supabase (sign-in and data) is never cached. */
-const VERSION = "bloom-v14";
+const VERSION = "bloom-v17";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./privacy.html", "./supabase-config.js"];
 const STATIC_HOSTS = ["cdn.jsdelivr.net", "cdnjs.cloudflare.com", "fonts.googleapis.com", "fonts.gstatic.com"];
 
