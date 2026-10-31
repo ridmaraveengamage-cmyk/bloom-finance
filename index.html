@@ -429,6 +429,11 @@ main .note{background:var(--card);border:1px solid var(--line);border-radius:14p
 .fill.w{background:var(--warn)}.fill.o{background:var(--r)}
 .trend .col span:first-child{background:var(--g)!important}.trend .col span:last-child{background:var(--r)!important}
 .legend i{border-radius:3px}
+/* ===== v0.18 fixes: start card spacing, mode buttons, long values in account boxes ===== */
+.x-start{margin-bottom:14px}
+.x-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.modeseg button{height:auto;min-height:64px;padding:10px 4px;line-height:1.25;text-align:center}
+.mini>*{min-width:0}.mini *{overflow-wrap:anywhere}
 /* ===== v0.17 fixes: no sideways scrolling on any phone, sidebar-only items, wrapped text ===== */
 html,body{overflow-x:hidden;max-width:100%}
 html{background:var(--bg)}
@@ -444,6 +449,7 @@ nav .navuser{display:none}
   .pbar #td{flex:none;padding:0 8px}
   #ml{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;text-align:center}
   nav{overflow:hidden}
+  .x-start .x-acts button{flex:1 1 100%}
   nav .nv,nav .nv-pill{min-width:0;max-width:none;flex:1 1 0}
   nav .nv-add{min-width:0;max-width:52px;width:52px;flex:0 0 52px;margin:0 4px}
 }
@@ -1478,7 +1484,7 @@ function logoutCard(){return AUTH.user?'<div class="card" style="display:flex;ju
 function accountCard(){return installCard()+accountCard0()}
 function accountCard0(){
   if(AUTH.user){var p=AUTH.profile||{};return '<h2>Account</h2><div class="card"><div class="mini" style="margin-top:0">'+mini("Username",esc(p.username||"—"))+mini("Email",esc(AUTH.user.email||"—"))+mini("Mobile",esc(p.phone||"—"))+mini("Country",esc(p.country||"—"))+'</div>'+
-    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button></div><div class="s">Your data is kept on this device, separately for each account. Syncing to the cloud is the next step.</div></div>'}
+    '<div class="btns" style="justify-content:flex-start"><button data-aact="editprofile">Edit details</button></div><div class="s">Your Bloom data is saved to this account and stays in sync on all your devices.</div></div>'}
   return '<h2>Account</h2><div class="card"><p class="s" style="margin-top:0">You’re using Bloom on this device without an account.'+(AUTH.preview?' Signing in works when Bloom runs on its own website.':'')+'</p><button class="pri" data-aact="showlogin">Log in or sign up</button></div>'}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var D2=b.dataset;
   if(D2.aact){e.stopPropagation();if(D2.aact==="logout"){ask("Log out of Bloom on this device?",function(){authAct("signout")},"Log out")}
@@ -1723,7 +1729,7 @@ function isIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigato
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();PWA.prompt=e;var b=$("ainst");if(b)b.hidden=false;if(tab==="mo")render()});
 window.addEventListener("appinstalled",function(){PWA.installed=true;PWA.prompt=null;var b=$("ainst");if(b)b.hidden=true;if(tab==="mo")render()});
 function installCard(){
-  if(isStandalone()||PWA.installed)return '<div class="mobile-only"><h2>App</h2><div class="card"><p class="s" style="margin:0">✓ Bloom is installed on this device.</p></div></div>';
+  if(isStandalone()||PWA.installed)return '<div class="mobile-only"><h2>App</h2><div class="card"><p class="s" style="margin:0">✓ Bloom Finance is installed on this device.</p></div></div>';
   var h='<h2>Install the app</h2><div class="card"><p class="s" style="margin-top:0">Use Bloom like a normal app: an icon on your home screen, full screen, and it works without internet.</p>';
   if(PWA.prompt)h+='<button class="pri" data-pwa="install">Install Bloom</button>';
   else if(isIOS())h+='<p style="margin:0">On iPhone or iPad: open this page in <b>Safari</b>, tap the <b>Share</b> button, then <b>Add to Home Screen</b>.</p>';
@@ -1742,7 +1748,7 @@ function stylePicker(){
   if(!$("dsty").open)$("dsty").showModal()}
 function appearanceCard(){
   var mk=function(v,l,i){return '<button type="button" data-mode="'+v+'" aria-pressed="'+(UI.mode===v)+'"><span aria-hidden="true">'+i+'</span>'+l+'</button>'};
-  return '<h2>Appearance</h2><div class="card"><div style="font-weight:600">Mode</div><div class="modeseg">'+mk("light","Light","☀")+mk("dark","Dark","☾")+mk("auto","Match device","◐")+'</div><div class="s" style="margin-top:8px">Applies to every app style. “Match device” follows your phone or computer’s setting.</div>'+
+  return '<h2>Appearance</h2><div class="card"><div style="font-weight:600">Mode</div><div class="modeseg">'+mk("light","Light","☀")+mk("dark","Dark","☾")+mk("auto","Match device","◐")+'</div><div class="s" style="margin-top:8px">“Match device” follows your phone or computer’s light or dark setting.</div>'+
    '</div>'}
 document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var d=b.dataset;
   if(d.sty){e.stopPropagation();if(d.sty==="open")stylePicker();else if(d.sty==="close")$("dsty").close();else{setUI("style",d.sty);stylePicker()}}
@@ -1837,7 +1843,7 @@ function xgroups(){var n=S.groups.length;return '<button class="x-grp" data-g="g
 function xrecent(F,title){return '<div class="x-card"><div class="x-head"><b>'+(title||"Recent in this period")+'</b><button class="x-link" data-t="tx">See all</button></div>'+(F.list.length?F.list.slice(0,5).map(xrow).join(""):'<div class="empty">Nothing yet. Add your first transaction.</div>')+'</div>'}
 function sparkPath(vals,w,h){var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),n=vals.length;var pts=vals.map(function(v,i){return[(i/(n-1)*w).toFixed(1),(mx===mn?h/2:(h-6-(v-mn)/(mx-mn)*(h-12))).toFixed(1)]});
   var line="M"+pts.map(function(p){return p.join(" ")}).join(" L");return{line:line,area:line+" L"+w+" "+h+" L0 "+h+" Z",last:pts[n-1]}}
-function startCard(){return S.accounts.length?'':'<div class="x-card"><b>Start with an account</b><p class="s">Add a bank account or your cash in hand. Then record your first transaction.</p><button class="pri" data-a="bank">Add bank account</button> <button data-a="cash">Set up cash in hand</button></div>'}
+function startCard(){return S.accounts.length?'':'<div class="x-card x-start"><b>Start with an account</b><p class="s">Add a bank account or your cash in hand. Then record your first transaction.</p><div class="x-acts"><button class="pri" data-a="bank">Add bank account</button><button data-a="cash">Set up cash in hand</button></div></div>'}
 function renderOV(r){
   var E=calc(r.E),B=calc(ds(new Date(r.s.getFullYear(),r.s.getMonth(),r.s.getDate()-1))),F=flows(r),c=E.curs[0],e=E.T[c],b=B.T[c]||{liquid:0,assets:0,liab:0,net:0,bank:0,cash:0,card:0,loan:0};
   var inc=F.inc[c]||0,ex=F.exp[c]||0,cf=F.cf(c),dn=e.net-b.net;
