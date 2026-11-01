@@ -1785,7 +1785,11 @@ function setSyncMeta(m){try{localStorage.setItem(KEY+"-sync",JSON.stringify(m))}
 function syncBadge(st){SYNC.state=st;var b=$("syncst");if(b){b.textContent=SYNCTXT[st]||"";b.className=st}}
 function hasData(x){return !!(x&&((x.accounts||[]).length||(x.cards||[]).length||(x.tx||[]).length||(x.assets||[]).length||(x.liabs||[]).length||(x.goals||[]).length||(x.groups||[]).length||(x.docs||[]).length))}
 function syncReady(){return !!(AUTH&&AUTH.client&&AUTH.user)}
-function adoptRemote(remote){S=blank();S.base="LKR";Object.assign(S,remote.data||{});migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}setSyncMeta({version:remote.version,dirty:false});render();syncBadge("ok")}
+/* sync fingerprint: only real changes to your personal data count (shared groups sync separately) */
+function canon(x){if(x===null||typeof x!=="object")return JSON.stringify(x);if(Array.isArray(x))return "["+x.map(canon).join(",")+"]";return "{"+Object.keys(x).sort().filter(function(k){return x[k]!==undefined}).map(function(k){return JSON.stringify(k)+":"+canon(x[k])}).join(",")+"}"}
+function personalOf(d){var c=JSON.parse(JSON.stringify(d||{}));c.groups=(c.groups||[]).filter(function(g){return !g.cloud});return c}
+function fp(d){var s=canon(personalOf(d)),h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+"."+s.length}
+function adoptRemote(remote){var keep=(S.groups||[]).filter(function(g){return g.cloud});S=blank();S.base="LKR";Object.assign(S,personalOf(remote.data));S.groups=(S.groups||[]).concat(keep);migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}setSyncMeta({version:remote.version,dirty:false,h:fp(S)});render();syncBadge("ok")}
 async function syncStart(){
   if(!syncReady())return;
   if(!navigator.onLine){syncBadge("offline");return}
@@ -1798,17 +1802,20 @@ async function syncStart(){
     var devData=null;try{devData=dev&&JSON.parse(dev)}catch(e){}
     if(hasData(devData)){ask("This device has Bloom data from before you signed in. Move it into your account?",function(){S=blank();S.base="LKR";Object.assign(S,devData);migrate();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}render();pushNow(0)},"Move it",function(){syncBadge("ok")});return}
     syncBadge("ok");return}
-  if(meta.version===remote.version){if(meta.dirty)await pushNow(remote.version);else syncBadge("ok");return}
-  if(local&&(meta.dirty||!meta.version)){
-    ask(meta.version?"Your account was changed on another device while this device also had unsynced changes.\nUse the copy from your account? Choose Cancel to keep this device’s copy and save it to your account.":"Your account already has Bloom data saved.\nLoad it on this device? Choose Cancel to keep this device’s data and save it to your account instead.",
-      function(){adoptRemote(remote)},"Use account copy",function(){pushNow(remote.version)});return}
+  var h=fp(S),changed=meta.h?h!==meta.h:!!meta.dirty;
+  if(fp(remote.data)===h){setSyncMeta({version:remote.version,dirty:false,h:h});syncBadge("ok");return}
+  if(meta.version===remote.version){if(changed)await pushNow(remote.version);else{setSyncMeta({version:meta.version,dirty:false,h:meta.h||h});syncBadge("ok")}return}
+  if(local&&(changed||!meta.version)){
+    var nb=$("cfn"),old=nb&&nb.textContent,back=function(){if(nb)nb.textContent=old||"Cancel"};
+    ask(meta.version?"You changed things on this device that weren’t synced yet, and your account was also changed on another device.\nWhich copy do you want to keep?":"Your account already has Bloom data saved.\nWhich copy do you want to keep?",
+      function(){back();adoptRemote(remote)},"Use account copy",function(){back();pushNow(remote.version)});if(nb)nb.textContent="Keep this device’s copy";return}
   adoptRemote(remote)}
 async function pushNow(base){
   if(!syncReady())return;
   if(!navigator.onLine){syncBadge("offline");return}
   if(SYNC.busy){SYNC.again=true;return}
   SYNC.busy=true;syncBadge("saving");
-  var meta=syncMeta(),v=base!=null?base:(meta.version||0),data=JSON.parse(JSON.stringify(S)),dev=String(navigator.userAgent||"").slice(0,80),q;
+  var meta=syncMeta(),v=base!=null?base:(meta.version||0),data=personalOf(S),dh=fp(S),dev=String(navigator.userAgent||"").slice(0,80),q;
   if(!v)q=AUTH.client.from("user_app_state").insert({user_id:AUTH.user.id,data:data,version:1,device:dev}).select("version").maybeSingle();
   else q=AUTH.client.from("user_app_state").update({data:data,version:v+1,device:dev}).eq("user_id",AUTH.user.id).eq("version",v).select("version").maybeSingle();
   var r=await q.then(null,function(e){return{error:e}});
@@ -1816,9 +1823,9 @@ async function pushNow(base){
   if(r.error){if(/duplicate|23505|unique/i.test(String((r.error.message||"")+" "+(r.error.code||"")))){syncStart();return}
     syncBadge(navigator.onLine?"error":"offline");clearTimeout(SYNC.retry);SYNC.retry=setTimeout(function(){pushNow()},20000);return}
   if(!r.data){syncStart();return}
-  setSyncMeta({version:r.data.version,dirty:SYNC.again});syncBadge("ok");
+  setSyncMeta({version:r.data.version,dirty:SYNC.again,h:dh});syncBadge("ok");
   if(SYNC.again){SYNC.again=false;queuePush()}}
-function queuePush(){if(!syncReady())return;var m=syncMeta();m.dirty=true;setSyncMeta(m);clearTimeout(SYNC.timer);syncBadge(navigator.onLine?"saving":"offline");SYNC.timer=setTimeout(function(){pushNow()},1200)}
+function queuePush(){if(!syncReady())return;var m=syncMeta();if(m.h&&!m.dirty&&fp(S)===m.h){if(SYNC.state!=="ok")syncBadge("ok");return}m.dirty=true;setSyncMeta(m);clearTimeout(SYNC.timer);syncBadge(navigator.onLine?"saving":"offline");SYNC.timer=setTimeout(function(){pushNow()},1200)}
 window.addEventListener("online",function(){if(syncReady()){var m=syncMeta();if(m.dirty)pushNow();else syncStart()}});
 window.addEventListener("offline",function(){if(syncReady())syncBadge("offline")});
 document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"&&syncReady()&&!syncMeta().dirty)syncStart()});
@@ -2008,11 +2015,11 @@ async function gPull(){if(!syncReady()||!navigator.onLine)return;
   gQueue();
   if(clash)tell("Someone else in “"+clash+"” changed it at the same time, so the latest version is shown. Please check your last change.")}
 function gQueue(){clearTimeout(GS.timer);GS.timer=setTimeout(gPush,1200)}
-async function gPush(){if(!syncReady()||GS.busy)return;if(!navigator.onLine)return;GS.busy=true;var conflict=false;
+async function gPush(){if(!syncReady()||GS.busy)return;if(!navigator.onLine)return;GS.busy=true;var conflict=false,pushed=false;
   for(var i=0;i<S.groups.length;i++){var g=S.groups[i];if(!g.cloud)continue;var p=gPack(g),js=JSON.stringify(p);if(js===g._sent)continue;
     var r=await AUTH.client.from("bloom_groups").update({data:p,version:g.cver+1}).eq("id",g.cloud).eq("version",g.cver).select("version").maybeSingle().then(null,function(e){return{error:e}});
-    if(r.error)continue;if(!r.data){conflict=true;continue}g.cver=r.data.version;g._sent=js;g._sentC=gContent(g)}
-  GS.busy=false;gKeep();if(conflict)gPull()}
+    if(r.error)continue;if(!r.data){conflict=true;continue}g.cver=r.data.version;g._sent=js;g._sentC=gContent(g);pushed=true}
+  GS.busy=false;if(pushed)gKeep();if(conflict)gPull()}
 async function gEnsureCloud(g){if(g.cloud)return true;var me=g.members.filter(function(m){return m.me})[0];if(me)me.uid=myUid();var p=gPack(g);
   var r=await AUTH.client.rpc("create_bloom_group",{p_data:p}).then(null,function(e){return{error:e}});
   if(r.error||!r.data){tell("Couldn’t share this group just now. Please try again.");return false}
